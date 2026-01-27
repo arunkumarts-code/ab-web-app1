@@ -1,0 +1,28 @@
+interface BigRoadCellProps {
+   cell: any;
+   size: number;
+}
+
+export function BigRoadCell({ cell, size }: BigRoadCellProps) {
+   if (!cell) return <div className={`m-1`} style={{ width: size, height: size }} />;
+
+   const color =
+      cell.resultType === 1
+         ? "border-red-600"
+         : cell.resultType === 2
+            ? "border-blue-600"
+            : "border-transparent";
+
+   return (
+      <div
+         className={`flex items-center justify-center m-1 rounded-full border-2 ${color}`}
+         style={{ width: size, height: size }}
+      >
+         {cell.drawCounter > 0 && (
+            <span className="text-[10px] font-bold text-black">
+               {cell.drawCounter}
+            </span>
+         )}
+      </div>
+   );
+}
