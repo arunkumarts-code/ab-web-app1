@@ -1,6 +1,6 @@
 "use client";
 
-import Road from "@/components/roads/Road";
+import Road from "@/components/roads/road";
 import { updateBigRoad, updateDishRoad, updateEyeRoad } from "@/components/roads/generate-road";
 import { RawResults, RoadTypes, RoadTypesType } from "@/constants/roads-list";
 import { Briefcase, Package, TrendingUp } from "lucide-react";
@@ -8,6 +8,13 @@ import { ReactNode, useMemo, useState } from "react";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { FaCog, FaSignOutAlt, FaUser, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import RoadGrid from "@/components/roads1/RoadGrid";
+import { BigRoadCell } from "@/components/roads/road/cells/BigRoadCell";
+import BigRoad from "@/components/roads1/big-road";
+import BeadRoad from "@/components/roads1/bead-road";
+import SmallRoad from "@/components/roads1/small-road";
+import RoachRoad from "@/components/roads1/conckroach-pig-road";
+import EyeRoad from "@/components/roads1/big-eye-road";
 
 const GameAreaPage = () => {
   const [currentRoad, setCurrentRoad] = useState<RoadTypesType>("Big Road");
@@ -33,8 +40,7 @@ const GameAreaPage = () => {
   return (
     <div className="space-y-2 flex flex-col h-full w-full">
       {/* Road Tabs */}
-      <div className="w-full rounded-lg shadow-sm border-border border overflow-hidden flex flex-col">
-        {/* Tabs */}
+      {/* <div className="w-full rounded-lg shadow-sm border-border border overflow-hidden flex flex-col">
         <div className="flex text-white">
           {(RoadTypes).map((type) => (
             <button
@@ -51,12 +57,34 @@ const GameAreaPage = () => {
           ))}
         </div>
 
-        {/* Road Content */}
-        <div className="min-h-30 bg-surface rounded-b-xl flex-1 p-2">
+        <div className="min-h-30 bg-surface rounded-b-xl flex-1">
           <Road roadData={roadMap[currentRoad]} roadType={currentRoad} />
+        </div>
+      </div> */}
+
+      <div className=" h-full w-full flex flex-col space-y-2">
+        <div className="bg-surface">
+          <BigRoad />
+        </div>
+        <div className="flex w-full gap-2">
+          <div className="flex-1 flex bg-surface">
+            <BeadRoad />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="bg-surface">
+              <SmallRoad />
+            </div>
+            <div className="bg-surface">
+              <RoachRoad />
+            </div>
+          </div>
+        </div>
+        <div className="bg-surface">
+          <EyeRoad />
         </div>
       </div>
 
+      {/* Prediction */}
       <div className="space-y-2">
         {/* Parity Items */}
         <div className="w-full flex justify-between items-center gap-2">

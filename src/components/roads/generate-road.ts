@@ -21,6 +21,9 @@ const CONFIG = {
    [ERoadType.Dish]: { row: 6, column: 150 },
 };
 
+type EyeRoadValue = 1 | 2 | null;
+type EyeRoadQuad = EyeRoadValue[];
+
 function makeBoard(cols: number, rows: number): (any | null)[][] {
    const arr = new Array(cols);
    for (let c = 0; c < cols; c++) {
@@ -267,4 +270,25 @@ export function updateEyeRoad(raw: any[], type: number) {
       data: eyeCols,
       compactColumns,
    };
+}
+
+export function toRoaQuadData(
+   data: EyeRoadValue[][],
+   quadSize = 4
+): EyeRoadQuad[][] {
+   return data.map((column) => {
+      const quads: EyeRoadQuad[] = [];
+
+      for (let i = 0; i < column.length; i += quadSize) {
+         const quad = column.slice(i, i + quadSize);
+
+         while (quad.length < quadSize) {
+            quad.push(null);
+         }
+
+         quads.push(quad);
+      }
+
+      return quads;
+   });
 }

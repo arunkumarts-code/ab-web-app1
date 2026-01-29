@@ -3,14 +3,15 @@ interface EyeRoadCellProps {
    size: number;
 }
 
-export function EyeRoadCell({ cell, size }: EyeRoadCellProps) {
+export function SmallRoadCell({ cell, size }: EyeRoadCellProps) {
+   
    if (!cell) return <div className={`m-1`} style={{ width: size, height: size }} />;
 
-   const color = cell === 1 ? "border-red-600" : "border-blue-600";
+   const bgColor = cell === 1 ? "bg-red-600" : "bg-blue-600";
 
    return (
       <div
-         className={`m-1 rounded-full border-4 ${color}`}
+         className={` rounded-full ${bgColor}`}
          style={{ width: size, height: size }}
       />
    );

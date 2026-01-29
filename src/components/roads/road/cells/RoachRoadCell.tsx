@@ -11,7 +11,7 @@ export function RoachRoadCell({ cell, size }: RoachRoadCellProps) {
 
    return (
       <div
-         className="m-1 rounded-full flex items-center justify-center"
+         className=" rounded-full flex items-center justify-center"
          style={{ width: size, height: size }}
       >
          {/* Diagonal slash */}

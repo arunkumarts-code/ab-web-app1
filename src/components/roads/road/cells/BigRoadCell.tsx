@@ -15,11 +15,14 @@ export function BigRoadCell({ cell, size }: BigRoadCellProps) {
 
    return (
       <div
-         className={`flex items-center justify-center m-1 rounded-full border-2 ${color}`}
-         style={{ width: size, height: size }}
+         className={`rounded-full border-2 ${color} flex items-center justify-center`}
+         style={{
+            width: size,
+            height: size,
+         }}
       >
          {cell.drawCounter > 0 && (
-            <span className="text-[10px] font-bold text-black">
+            <span className="text-[10px] font-bold">
                {cell.drawCounter}
             </span>
          )}

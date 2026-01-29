@@ -9,17 +9,12 @@ interface RenderColumnProps {
 
 export const RenderColumn = ({
    RoadColumn = [],
-   CircleSize = 25,
+   CircleSize = 40,
    roadType,
 }: RenderColumnProps) => {
    return (
       <div
-         style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-         }}
-      >
+         className="flex flex-col">
          {RoadColumn.map((cell, i) => (
             <RoadCellFactory
                key={i}

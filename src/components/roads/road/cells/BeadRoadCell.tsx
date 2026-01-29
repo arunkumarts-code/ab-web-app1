@@ -14,9 +14,12 @@ export function BeadRoadCell({ cell, size }: BeadRoadCellProps) {
             : "bg-green-500";
 
    return (
-      <div
-         className={`m-1 rounded-full ${bgColor}`}
+      <div className={`m-1 rounded-full flex justify-center items-center ${bgColor} `} 
          style={{ width: size, height: size }}
-      />
+      > 
+         <div className="border-2 border-surface rounded-full " 
+            style={{ width: size-2, height: size-2 }}
+         ></div>
+      </div>
    );
 }
