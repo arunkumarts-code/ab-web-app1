@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { toRoaQuadData, updateEyeRoad } from '@/components/roads/generate-road';
+import { toRoadQuadData, updateEyeRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
 import RoadGrid from '../RoadGrid';
 import { EyeRoadCell } from './EyeRoadCell';
@@ -8,7 +8,7 @@ const EyeRoad = ({columns}: {columns:number}) => {
 
    const eyeRoadData = useMemo(() => {
       const eye = updateEyeRoad(RawResults, 1);
-      const eyeRoadData = toRoaQuadData(eye.board);
+      const eyeRoadData = toRoadQuadData(eye.board);
 
       return eyeRoadData
    }, []);

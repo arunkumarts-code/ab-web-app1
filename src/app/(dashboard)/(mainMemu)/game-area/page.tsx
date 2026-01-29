@@ -100,16 +100,16 @@ const GameAreaPage = () => {
             <div className=" font-bold text-sm text-blue-700 dark:text-white">6</div>
           </div>
 
-          {/* Banker */}
-          <div className="bg-red-100 dark:bg-red-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-red-200 dark:border-pink-900">
-            <div className="font-bold text-xs text-red-600 dark:text-white uppercase tracking-wider">Banker</div>
-            <div className=" font-bold text-sm text-red-700 dark:text-white">8</div>
-          </div>
-
           {/* Tie */}
           <div className="bg-green-100 dark:bg-green-400/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-green-200 dark:border-green-900">
             <div className="font-bold text-xs text-green-800 dark:text-white uppercase tracking-wider">Tie</div>
             <div className=" font-bold text-sm text-green-700 dark:text-white">1</div>
+          </div>
+
+          {/* Banker */}
+          <div className="bg-red-100 dark:bg-red-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-red-200 dark:border-pink-900">
+            <div className="font-bold text-xs text-red-600 dark:text-white uppercase tracking-wider">Banker</div>
+            <div className=" font-bold text-sm text-red-700 dark:text-white">8</div>
           </div>
 
           {/* Hand */}

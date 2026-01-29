@@ -184,18 +184,18 @@ export function updateDishRoad(raw: any[]) {
       .filter((p) => p.filter((r) => r !== null).length > 0);
 }
 
-function checkPreviousLineEqual(bigCols: any[], colIndex: any, prevOne: number, prevTwo: number) {
+function checkPreviousLineEqual(bigCols: any[], colIndex: number, prevOne: number, prevTwo: number) {
    if (colIndex < Math.max(prevOne, prevTwo)) return false;
    return (
       (bigCols[colIndex - prevOne]?.colDatas.length || 0) ===
       (bigCols[colIndex - prevTwo]?.colDatas.length || 0)
    );
 }
-function checkPreviousDotExist(bigCols: any[], colIndex: any, rowIndex: number, prevCount: number) {
+function checkPreviousDotExist(bigCols: any[], colIndex: number, rowIndex: number, prevCount: number) {
    if (colIndex < prevCount) return false;
    return (bigCols[colIndex - prevCount]?.colDatas.length || 0) > rowIndex;
 }
-function checkStraightFall(bigCols: any[], colIndex: any, rowIndex: number, prevCount: number) {
+function checkStraightFall(bigCols: any[], colIndex: number, rowIndex: number, prevCount: number) {
    if (colIndex < prevCount) return false;
    const len = bigCols[colIndex - prevCount]?.colDatas.length || 0;
    return rowIndex >= len + 1;
@@ -272,7 +272,7 @@ export function updateEyeRoad(raw: any[], type: number) {
    };
 }
 
-export function toRoaQuadData(
+export function toRoadQuadData(
    data: EyeRoadValue[][],
 ): EyeRoadQuad[][] {
 

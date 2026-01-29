@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { toRoaQuadData, updateEyeRoad } from '@/components/roads/generate-road';
+import { toRoadQuadData, updateEyeRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
 import RoadGrid from '../RoadGrid';
 import { RoachRoadCell } from './RoachRoadCell';
@@ -8,7 +8,7 @@ const RoachRoad = ({columns}: {columns:number}) => {
 
    const roachRoadData = useMemo(() => {
       const roach = updateEyeRoad(RawResults, 4);
-      const roachRoadData = toRoaQuadData(roach.board);
+      const roachRoadData = toRoadQuadData(roach.board);
 
       return roachRoadData
    }, []);

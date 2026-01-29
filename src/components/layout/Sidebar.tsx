@@ -55,7 +55,7 @@ export function DashboardSidebar({ open, onClose }: SidebarProps) {
                className="text-2xl font-bold flex items-center gap-3 cursor-pointer"
             >
                <Gamepad2 size={30} className="text-primary"/>
-               <span className="text-[#6366f1]">AndiamoBac</span>
+               <span className="text-primary">AndiamoBac</span>
             </Link>
             <button onClick={onClose} className="lg:hidden text-muted">
                <X />
