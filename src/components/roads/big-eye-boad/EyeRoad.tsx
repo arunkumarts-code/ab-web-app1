@@ -1,21 +1,21 @@
 import { useMemo } from 'react'
 import { toRoaQuadData, updateEyeRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
-import RoadGrid from './RoadGrid';
-import { RoachRoadCell } from '../roads/road/cells/RoachRoadCell';
+import RoadGrid from '../RoadGrid';
+import { EyeRoadCell } from './EyeRoadCell';
 
-const RoachRoad = ({columns}: {columns:number}) => {
+const EyeRoad = ({columns}: {columns:number}) => {
 
-   const roachRoadData = useMemo(() => {
-      const roach = updateEyeRoad(RawResults, 4);
-      const roachRoadData = toRoaQuadData(roach.board);
+   const eyeRoadData = useMemo(() => {
+      const eye = updateEyeRoad(RawResults, 1);
+      const eyeRoadData = toRoaQuadData(eye.board);
 
-      return roachRoadData
+      return eyeRoadData
    }, []);
 
   return (
-     <RoadGrid columns={columns} cellSize={32} rows={3} dataLength={roachRoadData.length}>
-        {roachRoadData.map((col: any, x: number) =>
+     <RoadGrid columns={columns} cellSize={32} rows={3} dataLength={eyeRoadData.length}>
+        {eyeRoadData.map((col: any, x: number) =>
          col.map((cell: any, y: number) => (
             <div
                key={`${x}-${y}`}
@@ -29,7 +29,7 @@ const RoachRoad = ({columns}: {columns:number}) => {
                   {cell.map((v: any, i: any) =>
                      v !== null ? (
                         <div key={`${x}-${y}-${i}`} className="flex justify-center items-center">
-                           <RoachRoadCell key={i} cell={v} size={12} />
+                           <EyeRoadCell cell={v} size={12} />
                         </div>
                      ) : (
                         <div key={`${x}-${y}-${i}`} />
@@ -43,4 +43,4 @@ const RoachRoad = ({columns}: {columns:number}) => {
   )
 }
 
-export default RoachRoad
+export default EyeRoad

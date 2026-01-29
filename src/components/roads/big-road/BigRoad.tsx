@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { updateBigRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
-import { BigRoadCell } from '@/components/roads/road/cells/BigRoadCell';
-import RoadGrid from './RoadGrid';
+import { BigRoadCell } from '@/components/roads/big-road/BigRoadCell';
+import RoadGrid from '../RoadGrid';
 
 const BigRoad = ({columns}: {columns:number}) => {
    const bigRoadData = useMemo(() => {

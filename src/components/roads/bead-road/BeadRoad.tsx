@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { updateDishRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
-import RoadGrid from './RoadGrid';
-import { BeadRoadCell } from '../roads/road/cells/BeadRoadCell';
+import RoadGrid from '../RoadGrid';
+import { BeadRoadCell } from './BeadRoadCell';
 
 const BeadRoad = ({columns}: {columns:number}) => {
    const beadRoadData = useMemo(() => {

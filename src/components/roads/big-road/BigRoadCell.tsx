@@ -22,7 +22,7 @@ export function BigRoadCell({ cell, size }: BigRoadCellProps) {
          }}
       >
          {cell.drawCounter > 0 && (
-            <span className="text-[10px] font-bold">
+            <span className="text-xs font-bold">
                {cell.drawCounter}
             </span>
          )}

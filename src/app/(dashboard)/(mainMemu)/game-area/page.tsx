@@ -1,86 +1,86 @@
 "use client";
 
-import Road from "@/components/roads/road";
-import { updateBigRoad, updateDishRoad, updateEyeRoad } from "@/components/roads/generate-road";
-import { RawResults, RoadTypes, RoadTypesType } from "@/constants/roads-list";
+import BeadRoad from "@/components/roads/bead-road/BeadRoad";
+import BigRoad from "@/components/roads/big-road/BigRoad";
+import EyeRoad from "@/components/roads/big-eye-boad/EyeRoad";
+import RoachRoad from "@/components/roads/cockroach-road/RoachRoad";
+import SmallRoad from "@/components/roads/small-raod/SmallRoad";
 import { Briefcase, Package, TrendingUp } from "lucide-react";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { FaCog, FaSignOutAlt, FaUser, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import RoadGrid from "@/components/roads1/RoadGrid";
-import { BigRoadCell } from "@/components/roads/road/cells/BigRoadCell";
-import BigRoad from "@/components/roads1/big-road";
-import BeadRoad from "@/components/roads1/bead-road";
-import SmallRoad from "@/components/roads1/small-road";
-import RoachRoad from "@/components/roads1/conckroach-pig-road";
-import EyeRoad from "@/components/roads1/big-eye-road";
 
 const GameAreaPage = () => {
-  const [currentRoad, setCurrentRoad] = useState<RoadTypesType>("Big Road");
   const [currentBet, setCurrentBet] = useState<"Banker" | "Player" | "Wait">("Banker");
   const [openMenuDial, setOpenMenuDial] = useState(false);
 
-  const roadMap = useMemo(() => {
-    const big = updateBigRoad(RawResults);
-    const bead = updateDishRoad(RawResults);
-    const bigEye = updateEyeRoad(RawResults, 1);
-    const SmallEye = updateEyeRoad(RawResults, 2);
-    const Roach = updateEyeRoad(RawResults, 4);
+  const roadRefs = {
+    bigRoad: useRef<HTMLDivElement>(null),
+    beadRoad: useRef<HTMLDivElement>(null),
+    smallRoad: useRef<HTMLDivElement>(null),
+    eyeRoad: useRef<HTMLDivElement>(null),
+    roachRoad: useRef<HTMLDivElement>(null),
+  };
+  
+  const [widths, setWidths] = useState({
+    bigRoad: 0,
+    beadRoad: 0,
+    smallRoad: 0,
+    eyeRoad: 0,
+    roachRoad: 0,
+  });
+  
+  useEffect(() => {
+    const observers: ResizeObserver[] = [];
 
-    return {
-      "Big Road": big.board,
-      "Bead Road": bead,
-      "Eye": bigEye.board,
-      "Small": SmallEye.board,
-      "Roach": Roach.board
-    };
+    (Object.keys(roadRefs) as Array<keyof typeof roadRefs>).forEach((key) => {
+      const el = roadRefs[key].current;
+      if (!el) return;
+
+      const observer = new ResizeObserver(([entry]) => {
+        setWidths((prev) => ({
+          ...prev,
+          [key]: entry.contentRect.width,
+        }));
+      });
+
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   return (
     <div className="space-y-2 flex flex-col h-full w-full">
       {/* Road Tabs */}
-      {/* <div className="w-full rounded-lg shadow-sm border-border border overflow-hidden flex flex-col">
-        <div className="flex text-white">
-          {(RoadTypes).map((type) => (
-            <button
-              key={type}
-              onClick={() => setCurrentRoad(type)}
-              className={`w-full px-3 py-1 flex justify-center items-center text-sm font-semibold transition border-b-3
-                ${currentRoad === type
-                  ? "border-black bg-primary/90"
-                  : "border-transparent bg-primary/80"
-                }`}
-            >
-              {type}
-            </button>
-          ))}
+      <div className="space-y-3 flex flex-col h-full w-full">
+        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.bigRoad}>
+          <div className="p-1 text-sm bg-primary text-white">Big Road</div>
+          <BigRoad columns={widths.bigRoad} />
         </div>
 
-        <div className="min-h-30 bg-surface rounded-b-xl flex-1">
-          <Road roadData={roadMap[currentRoad]} roadType={currentRoad} />
+        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.beadRoad}>
+          <div className="p-1 text-sm bg-primary text-white">Bead Road</div>
+          <BeadRoad columns={widths.beadRoad} />
         </div>
-      </div> */}
 
-      <div className=" h-full w-full flex flex-col space-y-2">
-        <div className="bg-surface">
-          <BigRoad />
+        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.eyeRoad}>
+          <div className="p-1 text-sm bg-primary text-white">Big Eye Boy Road</div>
+          <EyeRoad columns={widths.eyeRoad} />
         </div>
-        <div className="flex w-full gap-2">
-          <div className="flex-1 flex bg-surface">
-            <BeadRoad />
+
+        <div className="flex w-full gap-2 flex-col md:flex-row">
+          <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.smallRoad}>
+            <div className="p-1 text-sm bg-primary text-white">Small Road</div>
+            <SmallRoad columns={widths.smallRoad} />
           </div>
-          <div className="flex-1 flex flex-col">
-            <div className="bg-surface">
-              <SmallRoad />
-            </div>
-            <div className="bg-surface">
-              <RoachRoad />
-            </div>
+
+          <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.roachRoad}>
+            <div className="p-1 text-sm bg-primary text-white">Cockroach Road</div>
+            <RoachRoad columns={widths.roachRoad} />
           </div>
-        </div>
-        <div className="bg-surface">
-          <EyeRoad />
         </div>
       </div>
 

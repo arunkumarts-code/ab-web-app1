@@ -1,21 +1,21 @@
 import { useMemo } from 'react'
 import { toRoaQuadData, updateEyeRoad } from '@/components/roads/generate-road';
 import { RawResults } from '@/constants/roads-list';
-import RoadGrid from './RoadGrid';
-import { EyeRoadCell } from '../roads/road/cells/EyeRoadCell';
+import RoadGrid from '../RoadGrid';
+import { SmallRoadCell } from './SmallRoadCell';
 
-const EyeRoad = ({columns}: {columns:number}) => {
+const SmallRoad = ({columns}: {columns:number}) => {
 
-   const eyeRoadData = useMemo(() => {
-      const eye = updateEyeRoad(RawResults, 1);
-      const eyeRoadData = toRoaQuadData(eye.board);
+   const smallRoadData = useMemo(() => {
+      const small = updateEyeRoad(RawResults, 2);
+      const smallRoadData = toRoaQuadData(small.board);
 
-      return eyeRoadData
+      return smallRoadData
    }, []);
 
   return (
-     <RoadGrid columns={columns} cellSize={32} rows={3} dataLength={eyeRoadData.length}>
-        {eyeRoadData.map((col: any, x: number) =>
+     <RoadGrid columns={columns} cellSize={32} rows={3} dataLength={smallRoadData.length}>
+        {smallRoadData.map((col: any, x: number) =>
          col.map((cell: any, y: number) => (
             <div
                key={`${x}-${y}`}
@@ -29,7 +29,7 @@ const EyeRoad = ({columns}: {columns:number}) => {
                   {cell.map((v: any, i: any) =>
                      v !== null ? (
                         <div key={`${x}-${y}-${i}`} className="flex justify-center items-center">
-                           <EyeRoadCell cell={v} size={12} />
+                           <SmallRoadCell cell={v} size={12} />
                         </div>
                      ) : (
                         <div key={`${x}-${y}-${i}`} />
@@ -43,4 +43,4 @@ const EyeRoad = ({columns}: {columns:number}) => {
   )
 }
 
-export default EyeRoad
+export default SmallRoad

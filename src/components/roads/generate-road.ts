@@ -274,21 +274,28 @@ export function updateEyeRoad(raw: any[], type: number) {
 
 export function toRoaQuadData(
    data: EyeRoadValue[][],
-   quadSize = 4
 ): EyeRoadQuad[][] {
-   return data.map((column) => {
-      const quads: EyeRoadQuad[] = [];
 
-      for (let i = 0; i < column.length; i += quadSize) {
-         const quad = column.slice(i, i + quadSize);
+   const COL_GROUP_SIZE = 2;
 
-         while (quad.length < quadSize) {
-            quad.push(null);
-         }
+   const totalColGroups = Math.ceil(data.length / COL_GROUP_SIZE);
+   const totalRowGroups = 3;
 
-         quads.push(quad);
-      }
+   const result = Array.from({ length: totalColGroups }, (_, colGroup) =>
+      Array.from({ length: totalRowGroups }, (_, rowGroup) => {
+         const colA = colGroup * 2;
+         const colB = colA + 1;
 
-      return quads;
-   });
+         const rowA = rowGroup * 2;
+         const rowB = rowA + 1;
+
+         return [
+            data[colA]?.[rowA] ?? null,
+            data[colB]?.[rowA] ?? null,
+            data[colA]?.[rowB] ?? null,
+            data[colB]?.[rowB] ?? null,
+         ];
+      })
+   );
+   return result;
 }
