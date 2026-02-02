@@ -5,7 +5,7 @@ export type MMItem = {
    mmStepsList: number[][];
 };
 
-const MM_LISTES: MMItem[] = [
+export const MM_LISTES: MMItem[] = [
    {
       mmId: '30b57f20-d31b-4bce-a130-60662c95c585',
       mmTitle: 'Ragnar MM',

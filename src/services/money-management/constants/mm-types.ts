@@ -1,4 +1,4 @@
-const MM_TYPES = {
+export const MM_TYPES = {
    RAGNAR_MM: "30b57f20-d31b-4bce-a130-60662c95c585",
    AUTHORS_MM: "783c2563-706a-46c7-97d4-1e099c702c24",
 }

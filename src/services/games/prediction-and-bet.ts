@@ -1,183 +1,195 @@
-import { GameResult1 } from "@/types";
+import { MM_LOOKUP } from "../money-management/mm-lookup";
+import { GAME_TYPE } from "./constants/game-types";
+import { GAME_LOOKUP } from "./game-lookup";
 
-const Patterns: Record<number, string> = {
-   0: "BBPBBPBBPBBPPPBPPBPPBBPPBBPPPBBBBPPBBPBPPBBBBPPBBBPBBPBBPBBPPPBPPBBPBBPPPPBPPBPPBBPB",
-   1: "BPBBBPPBPBPBPPPBPBPBBBPPPBPPBPPPBPPPBBBPBBBPBBBBPBPBBBPPPBBBPBBBBPPBBBBPPPBPPPPBBPPB",
-   2: "PBBPBBPBBPBBPPBBPPBPPBPPBPPBBBBPPPBBBPPBBBBPPBPBPBBPBBPBBBBPPPBBPBBPPBPPBPPBBPPBPPPP",
-   3: "PPBBPPBBPPPBPPBBPPBBBPBBBPBBBPBBBPPBPBBBBPPBBBPBBBPPPBPPBPPPBPPPBPBPBBBPBBBPPBPBPBPP",
-   4: "PPBPPBPPBBPBPPBPPBBPBBPPBBPBBPBBPBBPBPBPPBBBPPBBBPPPBBBPPBBBPPBPPBPPBBPPBBPBBPBBPBBP",
-   5: "PPBBBPBPPBPBPBBBPBPBPPPBPPPBPPBPPPBBBPBBBPPBBBBPBPPBBBPBBBPBBBPBBBPPBBPPPBPPPBBPPBBP",
-   6: "BPBBPBBPBBPPPPBBPPBPPBPPPBBPBBPBBPPBBBPPBBBPPBPBBBBPPBBBPPPBBPPBBPBBPBBPPBBPBBPBBPBB",
-   7: "BPPBBPPPPBPPPBBBBPPBBBBPBBBPPPBBBPBPBBBBPBBPBBBPBPPPBPPPBPPBPBBPBPBPPPBPBPBPBPBBBPB",
+export const Get_Max_LossCount_In_Row = (ResultList: any[] = []) => {
+   const resultList = (ResultList || [])
+      .map((p) => p.Result)
+      .reduce(
+         (rows, key, index) =>
+            (index === 0 || rows[rows.length - 1][0] !== key
+               ? rows.push([key])
+               : rows[rows.length - 1].push(key)) && rows,
+         [],
+      )
+      .filter((p:any) => p[0] === "Loss")
+      .map((p: any) => p.length);
+
+   if (resultList.length <= 0) return 0;
+
+   return Math.max.apply(null, resultList);
 };
 
-const findRepeatedPatterns = (streakArr :any) => {
-   const matches = [];
-   let currentChain = [];
-
-   for (let i = 0; i < streakArr.length; i += 2) {
-      const lCount = streakArr[i];
-      const wCount = streakArr[i + 1];
-
-      // Check for L >= 2 and W exists (which is 0 in our array)
-      if (lCount >= 2 && wCount === 0) {
-         currentChain.push({ losses: lCount, win: 1 });
-      } else {
-         // If the chain is 2 or more, save it
-         if (currentChain.length >= 2) {
-            matches.push([...currentChain]);
-         }
-         currentChain = []; // Reset
-
-         // Handle the case where the sequence was broken by a single W
-         // but the next L streak starts at the next index
-         if (lCount === 0) i--;
-      }
-   }
-
-   // Final check for a chain at the end of the array
-   if (currentChain.length >= 2) matches.push(currentChain);
-   return matches;
-};
-
-const Pattern_deductions = (ResultList: GameResult1[] = []) => {
-   const streaks = ResultList.map((hand) =>
-      ["P", "B"].includes(hand.Prediction)
-         ? hand.Prediction === hand.Winner
-            ? "W"
-            : "L"
-         : null,
-   )
-      .filter((item) => item !== null)
-      .reduce<number[]>((acc, curr) => {
-         if (curr === "W") {
-            acc.push(0);
-         } else {
-            const last = acc[acc.length - 1];
-            if (typeof last === "number" && last > 0) {
-               acc[acc.length - 1]++;
-            } else {
-               acc.push(1);
-            }
-         }
-         return acc;
-      }, []);
-
-   const patterns = findRepeatedPatterns(streaks);
-   return patterns.length > 0;
-};
-
-export const NextPredictionAndBet = (results: GameResult1[]) => {
-   let Prediction = "W";
-   let DetectedPattern:any = 0;
-   let VirtualLossRequired = false;
-   let VirtualWinRequired = false;
-   let iCount1 = 0;
-   let iCount2 = 0;
-
-   const ResultList = results || [];
-   const resultLength = ResultList.length;
-   const lastHand = ResultList[resultLength - 1];
-
-   const lastTwoHands = ResultList.slice(-2)
-   .map((hand) => {
-      let rt = "-";
-      if (["P", "B"].includes(hand.Prediction)) {
-         rt = hand.Prediction === hand.Winner ? "W" : "L";
-      }
-      return rt;
-   })
-      .join("");
-
-   const lastTenHands = ResultList.slice(-9)
-      .map((hand) => {
-         let rt = "-";
-         if (["P", "B"].includes(hand.Prediction)) {
-            rt = hand.Prediction === hand.Winner ? "W" : "L";
-         }
-         return rt;
-      })
-      .join("");
-
-
-   if (lastHand.Winner === "T") {
+export const Generate_ResultList = (ugResultList: any = [], GameType = "") => {
+   const tmpResultList = ugResultList || [];
+   const ResultList = tmpResultList.map((item: any) => {
+      let Prediction = item.Prediction;
+      if (
+         item?.ugNextHand?.VirtualWinRequired === true 
+      )
+         Prediction = "WAIT";
       return {
-         Prediction: lastHand?.Prediction || "W",
-         DetectedPattern: lastHand?.DetectedPattern || 0,
-         VirtualWinRequired: lastHand?.VirtualWinRequired || false,
-         VirtualLossRequired: lastHand?.VirtualLossRequired || false,
-         iCount1: lastHand?.iCount1 || 0,
-         iCount2: lastHand?.iCount2 || 0,
+         Id: item.Id,
+         Winner: item.Winner,
+         Prediction: Prediction,
+         DetectedPattern: item.DetectedPattern,
+         Result: item?.Result || "-",
+         hSkip: item?.ugGame?.hSkip || false,
+         ugSkip: item?.ugGame?.ugSkip || false,
+         VirtualLossRequired: item?.ugNextHand?.VirtualLossRequired || false,
+         VirtualWinRequired: item?.ugNextHand?.VirtualWinRequired || false,
+         VirtualWoLRequired: item?.VirtualWoLRequired || false,
+         Bet: item?.Bet || 0,
+         Column1: item?.Column1 || "",
+         Column2: item?.Column2 || "",
       };
+   });
+   const WinLossList = [...ResultList].reverse();
+   if (GameType === GAME_TYPE.COCOA_BEACH) {
+      WinLossList.forEach((item) => {
+         if (item.VirtualWinRequired || item.VirtualLossRequired) {
+            item.Prediction = "WAIT";
+         }
+      });
    }
+   return { ResultList, WinLossList };
+};
 
-   VirtualLossRequired = lastHand?.VirtualLossRequired || false;
-   VirtualWinRequired = lastHand?.VirtualWinRequired || false;
-   if (resultLength === 5) {
-      DetectedPattern = ResultList[0]?.DetectedPattern ?? 0;
-   } else DetectedPattern = lastHand?.DetectedPattern || 0;
-   if (DetectedPattern === "-") DetectedPattern = 0;
-   iCount1 = lastHand?.iCount1 ?? 0;
-   iCount2 = lastHand?.iCount2 ?? 0;
-
-   if (iCount1 > 0 && iCount1 < 6) {
-      iCount1++;
-   } else iCount1 = 0;
-   if (iCount1 > 0) {
-      return {
-         Prediction,
-         DetectedPattern,
-         iCount1,
-         iCount2,
-      };
-   }
-
-   if (["P", "B"].includes(lastHand?.Prediction)) {
-      if (lastHand?.Prediction !== lastHand?.Winner) {
-        if (VirtualLossRequired) VirtualLossRequired = false;
-      }
-      if (lastHand?.Prediction === lastHand?.Winner) {
-        iCount1 = 0;
-        if (VirtualWinRequired) {
-          VirtualWinRequired = false;
-          const detectedPatterns = Pattern_deductions(ResultList);
-          if (detectedPatterns) {
-            VirtualWinRequired = !(lastTwoHands === "WW");
-          }
-        }
-      }
-   }
-   if (lastTwoHands === "LL") {
-      VirtualWinRequired = true;
-   }
-   if (lastTenHands === "WWWWWWWWW") {
-      iCount1 = 1;
-   }
-
-   const pLength = Patterns[DetectedPattern]?.length;
-   let startIndex = resultLength - (5);
-   if (pLength <= resultLength) {
-      startIndex = resultLength % pLength;
-   }
-
-   if (startIndex <= 0 && resultLength !== 5) {
-      startIndex = 0;
-      DetectedPattern++;
-   }
-   if (DetectedPattern > 7) {
-      DetectedPattern = 0;
-   }
-
-   Prediction = Patterns[DetectedPattern]
-      ? Patterns[DetectedPattern][startIndex]
-      : "WAIT";
-
-   return {
-      Prediction,
-      VirtualWinRequired,
-      VirtualLossRequired,
-      DetectedPattern,
-      iCount1,
-      iCount2,
+export const NextPredictionAndBet = (results: any, UserGame: any) => {
+   let rt = {
+      CurrentStreak: UserGame?.ugStreakStartIndex || 0,
+      TimesBet: 1,
+      DoubleBetRequired: false,
+      VirtualWinRequired: false,
+      VirtualLossRequired: false,
+      DetectedPattern: "-",
+      Prediction: "WAIT",
+      IsRecoveryMode: results[results.length - 1]?.IsRecoveryMode || false,
+      BetAmount: 0,
+      BetUnit: 0,
+      RecoveryBalance: 0,
+      Shield: "off",
+      Parity: [],
+      Steps: null,
+      PL: null,
+      Sequence: 0,
+      SequenceUnits: 0,
+      iCount1: 0,
+      iCount2: 0,
    };
-}
+   let gamePrediction = {
+      Prediction: "WAIT",
+      CalculateBet: false,
+      VirtualWinRequired: false,
+      VirtualLossRequired: false,
+      DetectedPattern: "-",
+   };
+   let varUserGame = { ...UserGame };
+
+   let tmpResults = results.filter((r: any) => r.Winner !== "T");
+
+   const { gmId, mmId, ugBaseUnit } = varUserGame;
+   const game_process = GAME_LOOKUP[gmId];
+
+   // if (
+   //    varUserGame?.gmId === GAME_TYPE.CINQUE ||
+   //    varUserGame?.gmId === GAME_TYPE.CINQUE_II ||
+   //    varUserGame?.gmId === GAME_TYPE.CINQUE_III ||
+   //    varUserGame?.gmId === GAME_TYPE.SEI_I ||
+   //    varUserGame?.gmId === GAME_TYPE.SEI_II ||
+   //    varUserGame?.gmId === GAME_TYPE.SEI_III ||
+   //    varUserGame?.gmId === GAME_TYPE.QUATTRO ||
+   //    varUserGame?.gmId === GAME_TYPE.QUATTRO_II
+   // )
+   //    tmpResults = results || [];
+
+   if (
+      game_process !== null &&
+      game_process !== undefined &&
+      typeof game_process === "function"
+   ) {
+      // Remove tie from the results
+
+      gamePrediction = game_process(tmpResults, UserGame);
+      rt.Prediction = gamePrediction.Prediction;
+      rt.DetectedPattern = gamePrediction.DetectedPattern;
+      // rt.PL = gamePrediction?.PL || null;
+
+      // if (
+      //    gmId === GAME_TYPE.DORNE ||
+      // ) {
+      //    rt.iCount1 = gamePrediction?.iCount1 || 0;
+      //    rt.iCount2 = gamePrediction?.iCount2 || 0;
+      // }
+
+      if (gamePrediction.VirtualLossRequired) rt.VirtualLossRequired = true;
+      else if (gamePrediction.VirtualWinRequired) rt.VirtualWinRequired = true;
+   } else {
+      throw new Error(gmId + " -  Invalid Game detail provided");
+   }
+
+   let mm = {
+      TimesBet: 1,
+      CurrentStreak: UserGame?.ugStreakStartIndex || 0,
+      BetAmount: 0,
+      IsRecoveryMode: false,
+      RecoveryBalance: 0,
+      Sequence: 0,
+      WLUnits: 0,
+      SequenceUnits: 0,
+   };
+
+   let tmpResultList = [];
+
+   // if (
+   //    MM_TYPES.CHIDAM_MM === mmId ||
+   //    MM_TYPES.CAMELOT_II_MM === mmId ||
+   //    MM_TYPES.CAMELOT_III_MM === mmId ||
+   //    MM_TYPES.ORC_III_MM == mmId
+   // )
+   //    tmpResultList = results || [];
+   // else tmpResultList = (results || []).filter((p: any) => p.Result !== "-");
+   tmpResultList = (results || []).filter((p: any) => p.Result !== "-");
+
+   const LastResult = results[results.length - 1]?.Result || "-";
+   const mm_process = MM_LOOKUP[mmId];
+
+   if (
+      mm_process !== null &&
+      mm_process !== undefined &&
+      typeof mm_process === "function"
+   )
+      mm = mm_process(tmpResultList, UserGame);
+   if (gamePrediction.CalculateBet && rt.Shield === "off") {
+      rt.BetAmount = mm.BetAmount;
+      rt.TimesBet = mm.TimesBet;
+      rt.BetUnit = mm.BetAmount / +(ugBaseUnit || 1);
+      rt.DoubleBetRequired = mm.TimesBet > 1;
+      rt.IsRecoveryMode = mm.IsRecoveryMode;
+      rt.RecoveryBalance = mm.RecoveryBalance;
+      rt.CurrentStreak = mm.CurrentStreak;
+      rt.Sequence = mm?.Sequence || 0;
+      // rt.WLUnits = mm?.WLUnits || 0;
+      rt.SequenceUnits = mm?.SequenceUnits || 0;
+   }
+
+   // if (MM_TYPES.ORC_III_MM === mmId) {
+   //    rt.RecoveryBalance = mm.RecoveryBalance;
+   // }
+
+   // if (
+   //    (mm?.Steps !== null && mm?.Steps !== undefined && LastResult !== "-") ||
+   //    // (["P", "B"].includes(gamePrediction.Prediction) &&
+   //    MM_TYPES.CAMELOT_II_MM === mmId ||
+   //    MM_TYPES.CAMELOT_III_MM === mmId
+   // ) {
+   //    rt.Steps = mm.Steps;
+   // }
+
+   // if (MM_TYPES.CAMELOT_II_MM === mmId || MM_TYPES.CAMELOT_III_MM === mmId) {
+   //    rt.TimesBet = mm.TimesBet;
+   //    rt.CurrentStreak = mm.CurrentStreak;
+   // }
+
+   return rt;
+};

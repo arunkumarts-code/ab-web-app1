@@ -12,12 +12,12 @@ import { FaUndo, FaTrashAlt, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { GameResult } from "@/types";
 import GlobalLoader from "@/components/common/GlobalLoader";
-import { addHand, getCurrectPredictionBet, loadResults, restartGame, undoHand } from "@/services/users";
+import { addHand, getCurrectPredictionBet, loadResults, restartGame, undoHand } from "@/services/games";
 
 const GameAreaPage = () => {
   const [currentBet, setCurrentBet] = useState<"Banker" | "Player" | "Wait">("Banker");
   const [openMenuDial, setOpenMenuDial] = useState(false);
-  const [currentResult, setCurrentResult] = useState<GameResult[]>([]);
+  const [currentResult, setCurrentResult] = useState<any[]>([]);
   const [loadingGame, setLoadingGame] =useState(true);
 
   const roadRefs = {
@@ -43,6 +43,8 @@ const GameAreaPage = () => {
 
   useEffect(() => {
     const gameResult = loadResults();
+    console.log(gameResult);
+    
     setCurrentResult(gameResult);
     getCurrentBet();
     setLoadingGame(false);
@@ -72,7 +74,9 @@ const GameAreaPage = () => {
 
   const handleAddHand = (handType: "P" | "B" | "T") => {
     setLoadingGame(true);
-    const result = addHand(handType);
+    const result: any = addHand(handType);
+    console.log(result);
+    
     setCurrentResult([...result]);
     getCurrentBet();
     setLoadingGame(false);

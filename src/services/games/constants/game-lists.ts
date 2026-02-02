@@ -4,7 +4,7 @@ export type GameItem = {
    gmStartAt: number;
 };
 
-const GAME_LISTES: GameItem[] = [
+export const GAME_LISTES: GameItem[] = [
    {
       gmId: 'e9bfb121-f43f-4920-a787-ef3bb6997f08',
       gmTitle: 'Cocoa Beach',
