@@ -10,6 +10,28 @@ export interface ApiResponse<T> {
    data?: T;
 }
 
+export type GameActions = "P" | "B" | "T";
+export type PredictionType = "P" | "B" | "W";
+
+export interface GameResult1 {
+   Id: number,
+   Winner: GameActions,
+   GameName: string,
+   Prediction: PredictionType,
+   Bet: number,
+   DetectedPattern: string | number,
+   NextHand: PredictionType,
+   iCount1: number,
+   iCount2: number,
+   VirtualWinRequired: boolean,
+   VirtualLossRequired: boolean,
+};
+export interface GameResult {
+   resultType: number;
+   isBankerPair: boolean;
+   isPlayerPair: boolean;
+};
+
 export interface User {
    id: string;
    firebaseUid: string;

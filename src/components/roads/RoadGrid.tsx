@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface RoadGridProps {
   rows: number;
@@ -13,20 +13,18 @@ interface RoadGridProps {
 export default function RoadGrid({
   rows = 6,
   cellSize = 32,
-  columns,
+  columns=20,
   dataLength,
   children,
 }: RoadGridProps) {
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const totalColumns = Math.max(dataLength ?? 0, Math.ceil(columns / cellSize));
 
   return (
-    <div className="w-full">
+    <div className="w-full box-border bg-surface">
       <div
-        ref={scrollRef}
-        // className="overflow-x-auto scrollbar-custom"
-        className="overflow-x-auto hideScrollbar-custom"
+        // className=" scrollbar-custom overflow-y-hidden"
+        className="overflow-x-auto hideScrollbar-custom overflow-y-hidden"
       >
         <div
           className="relative grid box-border"
@@ -40,6 +38,10 @@ export default function RoadGrid({
             <div
               key={i}
               className="border-1 border-border box-border"
+              style={{
+                marginRight: '-1px',
+                marginBottom: '-1px',
+              }}
             />
           ))}
 

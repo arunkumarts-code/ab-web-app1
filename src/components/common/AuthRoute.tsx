@@ -10,21 +10,21 @@ export default function AuthRoute({
 }: {
    children: React.ReactNode;
 }) {
-   const { user, fbToken, loading } = UserAuth();
+   const { user, loading } = UserAuth();
    const router = useRouter();
 
    useEffect(() => {
       if (loading) return;
 
-      if (user && fbToken) {
+      if (user) {
          const redirectUrl = sessionStorage.getItem("redirectAfterLogin") ?? "/dashboard";
          sessionStorage.removeItem("redirectAfterLogin");
 
          router.replace(redirectUrl);
       }
-   }, [user, fbToken, loading, router]);
+   }, [user, loading, router]);
 
-   if (loading || (user && fbToken)) {
+   if (loading || user) {
       return <GlobalLoader />;
    }
 

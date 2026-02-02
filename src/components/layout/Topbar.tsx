@@ -92,7 +92,7 @@ export function DashboardTopbar({
             {openMenu && 
               <div className="absolute right-0 mt-2 w-44 rounded-lg border border-border bg-surface shadow-md p-1 text-sm text-foreground z-50">
                 <button
-                  onClick={() => router.push("/profile")}
+                  onClick={() => { router.push("/profile"); setOpenMenu(false)}}
                   className="cursor-pointer flex w-full items-center gap-2 rounded-lg px-3 py-2 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                 >
                   <UserIcon className="h-4 w-4" />

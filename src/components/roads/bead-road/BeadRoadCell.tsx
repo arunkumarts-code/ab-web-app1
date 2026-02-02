@@ -4,7 +4,7 @@ interface BeadRoadCellProps {
 }
 
 export function BeadRoadCell({ cell, size }: BeadRoadCellProps) {
-   if (!cell) return <div className={`m-1`} style={{ width: size, height: size }} />;
+   if (!cell) return null;
 
    const bgColor =
       cell === 1
@@ -14,7 +14,7 @@ export function BeadRoadCell({ cell, size }: BeadRoadCellProps) {
             : "bg-green-500";
 
    return (
-      <div className={`m-1 rounded-full flex justify-center items-center ${bgColor} `} 
+      <div className={` rounded-full border-box flex justify-center items-center ${bgColor} `} 
          style={{ width: size, height: size }}
       > 
          <div className="border-2 border-surface rounded-full " 

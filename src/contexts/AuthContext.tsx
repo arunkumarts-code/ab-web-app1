@@ -4,7 +4,7 @@ import api from "@/configs/axios";
 import { auth } from "@/configs/firebase";
 import { AuthResult, User } from "@/types";
 import { AuthError, confirmPasswordReset, createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 interface AuthContextType {
    user: User | null;
@@ -19,6 +19,8 @@ interface AuthContextType {
    logOut: () => Promise<void>;
 }
 
+const USER_PROFILE_KEY = "User_Profile";
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({
@@ -29,6 +31,9 @@ export const AuthContextProvider = ({
    const [fbToken, setFbToken] = useState<string | null>(null);
    const [user, setUser] = useState<User | null>(null);
    const [loading, setLoading] = useState(true);
+
+   const isNewSignIn = useRef(false);
+   const isSyncing = useRef(false);
 
    const getAuthErrorMessage = (error: AuthError): string => {
       switch (error.code) {
@@ -98,36 +103,20 @@ export const AuthContextProvider = ({
       }
    };
 
-   const syncUserWithBackend = async () => {
-      try {
-         const firebaseUser = auth.currentUser;
-         if (!firebaseUser) return;
-   
-         const token = await firebaseUser.getIdToken(true);
-         setFbToken(token);
-   
-         const result = await api.post("/auth/login");
-         if (result.data.success) {
-            setUser(result.data.data);
-         }
-         else {
-            await logOut();
-         }
-      } catch (error) {
-         console.error("Backend sync failed:", error);
-         await logOut();
-         return { success: false };
-      }
-   }
+   const getStoredProfile = () => {
+      const data = localStorage.getItem(USER_PROFILE_KEY);
+      return data ? JSON.parse(data) : null;
+   };
 
    const googleSignIn = async (): Promise<AuthResult> => {
       try {
+         isNewSignIn.current = true;
          const provider = new GoogleAuthProvider();
          provider.setCustomParameters({ prompt: "select_account" });
          await signInWithPopup(auth, provider);
-         await syncUserWithBackend();
          return { success: true };
       } catch (error) {
+         isNewSignIn.current = false;
          return {
             success: false,
             error: getAuthErrorMessage(error as AuthError),
@@ -140,10 +129,11 @@ export const AuthContextProvider = ({
       password: string,
    ): Promise<AuthResult> => {
       try {
+         isNewSignIn.current = true;
          await signInWithEmailAndPassword(auth, email, password);
-         await syncUserWithBackend();
          return { success: true };
       } catch (error) {
+         isNewSignIn.current = false;
          return {
             success: false,
             error: getAuthErrorMessage(error as AuthError),
@@ -157,13 +147,14 @@ export const AuthContextProvider = ({
       userName: string
    ): Promise<AuthResult> => {
       try {
+         isNewSignIn.current = true;
          const result = await createUserWithEmailAndPassword(auth, email, password);
          await updateProfile(result.user, {
             displayName: userName,
          });
-         await syncUserWithBackend();
          return { success: true };
       } catch (error) {
+         isNewSignIn.current = false;
          return {
             success: false,
             error: getAuthErrorMessage(error as AuthError),
@@ -208,27 +199,85 @@ export const AuthContextProvider = ({
    useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
          if (currentUser) {
-            const token = await currentUser.getIdToken(true);
-            setFbToken(token);
+            if (isSyncing.current) {
+               return; 
+            }
+            isSyncing.current = true;
+ 
+            try {
+               const token = await currentUser.getIdToken(true);
+               setFbToken(token);
 
-            if(!user){
-               try {
-                  const result = await api.get("/user");
-                  if (result.data.success){
-                     setUser(result.data.data);
-                  }
-                  else{
+               if (isNewSignIn.current) {
+                  const loginResult = await api.post("/auth/login");
+                  if (loginResult.data.success) {
+                     setUser(loginResult.data.data);
+
+                     const profile = {
+                        userEmail: loginResult.data.data.userEmail,
+                        userNickName: loginResult.data.data.userNickName,
+                        defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
+                        defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+                        defaultBaseUnit: 1,
+                        defaultStartingBalance: 300
+                     };
+                     const existing = getStoredProfile();
+                     const updatedProfile = {
+                        ...existing,
+                        ...profile,
+                     };
+                     localStorage.setItem(
+                        USER_PROFILE_KEY,
+                        JSON.stringify(updatedProfile)
+                     );
+                     
+                  } else {
+                     console.error("Backend sync failed");
                      await logOut();
                   }
-               } catch (error) {
-                  console.error("Failed to fetch user profile:", error);
+                  isNewSignIn.current = false;
                }
+               else{
+                  const userResult = await api.get("/user");
+                  if (userResult.data.success) {
+                     setUser(userResult.data.data);
+                     
+                     const profile = {
+                        userEmail: userResult.data.data.userEmail,
+                        userNickName: userResult.data.data.userNickName,
+                        defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
+                        defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+                        defaultBaseUnit: 1,
+                        defaultStartingBalance: 300
+                     };
+                     const existing = getStoredProfile();
+                     const updatedProfile = {
+                        ...existing,
+                        ...profile,
+                     };
+                     localStorage.setItem(
+                        USER_PROFILE_KEY,
+                        JSON.stringify(updatedProfile)
+                     );
+
+                  } else {
+                     console.error("Failed to fetch user data");
+                     await logOut();
+                  }
+               }
+            } catch (error) {
+               console.error("Failed to fetch user profile:", error);
+               await logOut();
+            }
+            finally {
+               isSyncing.current = false;
+               setLoading(false);
             }
          } else {
             setUser(null);
             setFbToken(null);
+            setLoading(false);
          }
-         setLoading(false);
       });
 
       return unsubscribe;

@@ -4,7 +4,7 @@ interface BigRoadCellProps {
 }
 
 export function BigRoadCell({ cell, size }: BigRoadCellProps) {
-   if (!cell) return <div className={`m-1`} style={{ width: size, height: size }} />;
+   if (!cell) return null;
 
    const color =
       cell.resultType === 1
@@ -17,8 +17,8 @@ export function BigRoadCell({ cell, size }: BigRoadCellProps) {
       <div
          className={`rounded-full border-2 ${color} flex items-center justify-center`}
          style={{
-            width: size,
-            height: size,
+            width: `${size}px`,
+            height: `${size}px`,
          }}
       >
          {cell.drawCounter > 0 && (

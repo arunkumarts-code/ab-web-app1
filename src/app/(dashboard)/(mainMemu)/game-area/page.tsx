@@ -8,12 +8,17 @@ import SmallRoad from "@/components/roads/small-raod/SmallRoad";
 import { Briefcase, Package, TrendingUp } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { BsGrid3X3GapFill } from "react-icons/bs";
-import { FaCog, FaSignOutAlt, FaUser, FaWallet } from "react-icons/fa";
+import { FaUndo, FaTrashAlt, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import { GameResult } from "@/types";
+import GlobalLoader from "@/components/common/GlobalLoader";
+import { addHand, getCurrectPredictionBet, loadResults, restartGame, undoHand } from "@/services/users";
 
 const GameAreaPage = () => {
   const [currentBet, setCurrentBet] = useState<"Banker" | "Player" | "Wait">("Banker");
   const [openMenuDial, setOpenMenuDial] = useState(false);
+  const [currentResult, setCurrentResult] = useState<GameResult[]>([]);
+  const [loadingGame, setLoadingGame] =useState(true);
 
   const roadRefs = {
     bigRoad: useRef<HTMLDivElement>(null),
@@ -30,8 +35,21 @@ const GameAreaPage = () => {
     eyeRoad: 0,
     roachRoad: 0,
   });
+
+  const getCurrentBet = () => {
+    const gameCurrectBet = getCurrectPredictionBet();
+    setCurrentBet(gameCurrectBet)
+  }
+
+  useEffect(() => {
+    const gameResult = loadResults();
+    setCurrentResult(gameResult);
+    getCurrentBet();
+    setLoadingGame(false);
+  }, []);
   
   useEffect(() => {
+    if (loadingGame) return;
     const observers: ResizeObserver[] = [];
 
     (Object.keys(roadRefs) as Array<keyof typeof roadRefs>).forEach((key) => {
@@ -50,37 +68,73 @@ const GameAreaPage = () => {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [loadingGame]);
+
+  const handleAddHand = (handType: "P" | "B" | "T") => {
+    setLoadingGame(true);
+    const result = addHand(handType);
+    setCurrentResult([...result]);
+    getCurrentBet();
+    setLoadingGame(false);
+  }
+
+  const handleRestart = () => {
+    setLoadingGame(true);
+    setOpenMenuDial(false);
+    const result = restartGame();
+    setCurrentResult(result);
+    getCurrentBet();
+    setLoadingGame(false);
+  }
+
+  const handleUndo = () => {
+    setLoadingGame(true);
+    setOpenMenuDial(false);
+    const result = undoHand();
+    setCurrentResult(result);
+    getCurrentBet();
+    setLoadingGame(false);
+  }
+  
+  if (loadingGame){
+    return (
+      <GlobalLoader />
+    )
+  }
 
   return (
     <div className="space-y-2 flex flex-col h-full w-full">
       {/* Road Tabs */}
       <div className="space-y-3 flex flex-col h-full w-full">
-        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.bigRoad}>
-          <div className="p-1 text-sm bg-primary text-white">Big Road</div>
-          <BigRoad columns={widths.bigRoad} />
+        <div className="flex w-full flex-col md:flex-row gap-2">
+          <div className="w-full overflow-hidden" ref={roadRefs.bigRoad}>
+            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Big Road</div>
+            <BigRoad columns={widths.bigRoad} data={currentResult} cellSize={25} />
+          </div>
+          <div className="w-full overflow-hidden" ref={roadRefs.beadRoad}>
+            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Bead Road</div>
+            <BeadRoad columns={widths.beadRoad} data={currentResult} cellSize={25} />
+          </div>
         </div>
 
-        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.beadRoad}>
-          <div className="p-1 text-sm bg-primary text-white">Bead Road</div>
-          <BeadRoad columns={widths.beadRoad} />
-        </div>
-
-        <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.eyeRoad}>
-          <div className="p-1 text-sm bg-primary text-white">Big Eye Boy Road</div>
-          <EyeRoad columns={widths.eyeRoad} />
-        </div>
-
-        <div className="flex w-full gap-2 flex-col md:flex-row">
-          <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.smallRoad}>
-            <div className="p-1 text-sm bg-primary text-white">Small Road</div>
-            <SmallRoad columns={widths.smallRoad} />
+        <div className="flex w-full flex-col gap-2">
+          <div className="w-full overflow-hidden" ref={roadRefs.eyeRoad}>
+            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Big Eye Boy Road</div>
+            <EyeRoad columns={widths.eyeRoad} data={currentResult} cellSize={25} />
           </div>
 
-          <div className="w-full bg-surface rounded-lg overflow-hidden" ref={roadRefs.roachRoad}>
-            <div className="p-1 text-sm bg-primary text-white">Cockroach Road</div>
-            <RoachRoad columns={widths.roachRoad} />
+          <div className="flex flex-1 w-full flex-col md:flex-row gap-2">
+            <div className="w-full overflow-hidden" ref={roadRefs.smallRoad}>
+              <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Small Road</div>
+              <SmallRoad columns={widths.smallRoad} data={currentResult} cellSize={25} />
+            </div>
+
+            <div className="w-full overflow-hidden" ref={roadRefs.roachRoad}>
+              <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Cockroach Road</div>
+              <RoachRoad columns={widths.roachRoad} data={currentResult} cellSize={25} />
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -140,7 +194,7 @@ const GameAreaPage = () => {
             </span>
 
             <span className="text-lg font-bold text-white">
-              $1.00
+              1.00
             </span>
           </div>
         </div>
@@ -148,7 +202,7 @@ const GameAreaPage = () => {
         {/* MM */}
         <div
           className="@container flex justify-between items-center gap-2 overflow-x-auto scrollbar-custom">
-          {/* Banker */}
+          {/* Base */}
           <div className="bg-primary/90 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="font-bold text-xs text-white dark:text-gray-400 tracking-wider text-center">Base</div>
             <div className="text-sm text-white text-center">1.00</div>
@@ -185,7 +239,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-primary tracking-wider ">Start</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">3.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">500.00</div>
             </div>
             <div>
               <div className="p-1 text-primary ">
@@ -262,7 +316,7 @@ const GameAreaPage = () => {
         </div>
 
         {/* Actions (P B T S Menu) */}
-        <div className="flex h-16 gap-3 justify-around items-center">
+        <div className="flex h-16 gap-3 justify-around items-center select-none">
           <div
             className='flex justify-center items-center
                   w-14 h-14
@@ -276,6 +330,7 @@ const GameAreaPage = () => {
                   transition-all duration-200
                   hover:scale-110 hover:shadow-xl
                   active:scale-95'
+            onClick={() => handleAddHand("P")}
           >
             P
           </div>
@@ -292,6 +347,7 @@ const GameAreaPage = () => {
                   transition-all duration-200
                   hover:scale-110 hover:shadow-xl
                   active:scale-95'
+            onClick={() => handleAddHand("B")}
           >
             B
           </div>
@@ -308,6 +364,7 @@ const GameAreaPage = () => {
                   transition-all duration-200
                   hover:scale-110 hover:shadow-xl
                   active:scale-95'
+            onClick={() => handleAddHand("T")}
           >
             T
           </div>
@@ -327,37 +384,46 @@ const GameAreaPage = () => {
           >
             S
           </div>
-
           <div className="relative flex flex-col items-center">
-
             {/* Actions */}
             <div
               className={`absolute bottom-16 flex flex-col gap-3
-            transition-all duration-300
-            ${openMenuDial
+              transition-all duration-300
+              ${openMenuDial
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 translate-y-4 scale-75 pointer-events-none"
-                }
-          `}
+              }`}
             >
-              <ActionButton icon={<FaUser />} />
-              <ActionButton icon={<FaCog />} />
-              <ActionButton icon={<FaSignOutAlt />} />
+              <div className="flex justify-center items-center
+                w-14 h-14 rounded-full
+                bg-gray-700 text-white
+                shadow-md cursor-pointer  
+                transition-all duration-200
+                hover:scale-110 active:scale-95"
+                onClick={handleRestart}
+              >
+                <FaTrashAlt className="h-5 w-5"/>
+              </div>
+              <div className="flex justify-center items-center
+                w-14 h-14 rounded-full
+                bg-gray-700 text-white
+                shadow-md cursor-pointer  
+                transition-all duration-200
+                hover:scale-110 active:scale-95"
+                onClick={handleUndo}
+              >
+                <FaUndo className="h-5 w-5" />
+              </div>
             </div>
             <div
               onClick={() => setOpenMenuDial(!openMenuDial)}
               className='flex justify-center items-center
-                    w-14 h-14
-                    shadow-lg
-                    font-bold text-xl
-                    rounded-full
-                    border-2 border-gray-400
-                    bg-gray-500
-                    text-white
-                    cursor-pointer
-                    transition-all duration-200
-                    hover:scale-110 hover:shadow-xl
-                    active:scale-95'
+                w-14 h-14 shadow-lg font-bold text-xl
+                rounded-full border-2 border-gray-400
+                bg-gray-500 text-white cursor-pointer
+                transition-all duration-200
+                hover:scale-110 hover:shadow-xl
+                active:scale-95'
             >
               {openMenuDial ? <IoClose size={24} /> : <BsGrid3X3GapFill />}
             </div>
@@ -369,21 +435,3 @@ const GameAreaPage = () => {
 }
 
 export default GameAreaPage
-
-function ActionButton({ icon }: { icon: ReactNode }) {
-  return (
-    <div className="flex justify-center items-center
-      w-14 h-14
-      rounded-full
-      bg-gray-700
-      text-white
-      shadow-md
-      cursor-pointer
-      transition-all duration-200
-      hover:scale-110
-      active:scale-95"
-    >
-      {icon}
-    </div>
-  );
-}

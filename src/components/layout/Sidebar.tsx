@@ -54,11 +54,11 @@ export function DashboardSidebar({ open, onClose }: SidebarProps) {
                href="/"
                className="text-2xl font-bold flex items-center gap-3 cursor-pointer"
             >
-               <Gamepad2 size={30} className="text-primary"/>
-               <span className="text-primary">AndiamoBac</span>
+               <Gamepad2 size={30} className="text-primary dark:text-gray-200"/>
+               <span className="text-primary dark:text-gray-200">AndiamoBac</span>
             </Link>
             <button onClick={onClose} className="lg:hidden text-muted">
-               <X />
+               <X className="h-5 w-5"/>
             </button>
          </div>
 
