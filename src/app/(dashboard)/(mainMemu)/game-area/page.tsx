@@ -6,19 +6,23 @@ import EyeRoad from "@/components/roads/big-eye-boad/EyeRoad";
 import RoachRoad from "@/components/roads/cockroach-road/RoachRoad";
 import SmallRoad from "@/components/roads/small-raod/SmallRoad";
 import { Briefcase, Package, TrendingUp } from "lucide-react";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { FaUndo, FaTrashAlt, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { GameResult } from "@/types";
 import GlobalLoader from "@/components/common/GlobalLoader";
-import { addHand, getCurrectPredictionBet, loadResults, restartGame, undoHand } from "@/services/users";
+import { addHand, getCurrectGameData, loadResults, restartGame, undoHand } from "@/services/games";
+import { USER_PROFILE } from "@/constants/roads-list";
+import { MM_LISTES } from "@/services/money-management/constants/mm-lists";
 
 const GameAreaPage = () => {
-  const [currentBet, setCurrentBet] = useState<"Banker" | "Player" | "Wait">("Banker");
+  const [currentGameData, setCurrentGameData] = useState<any>(null);
   const [openMenuDial, setOpenMenuDial] = useState(false);
   const [currentResult, setCurrentResult] = useState<GameResult[]>([]);
   const [loadingGame, setLoadingGame] =useState(true);
+  const [mmStepList, setMMStepList] = useState<any[]>([]);
+  const [mmStepIndex, setMMStepIndex] = useState(0);
 
   const roadRefs = {
     bigRoad: useRef<HTMLDivElement>(null),
@@ -36,15 +40,24 @@ const GameAreaPage = () => {
     roachRoad: 0,
   });
 
-  const getCurrentBet = () => {
-    const gameCurrectBet = getCurrectPredictionBet();
-    setCurrentBet(gameCurrectBet)
+  const getCurrentGameData = () => {
+    const gameCurrectGameData = getCurrectGameData();
+    setCurrentGameData(gameCurrectGameData);
+    setMMStepIndex(gameCurrectGameData.MMStepIndex);
+  }
+
+  const getMMSteps = () => {
+    const userProfile = JSON.parse(localStorage.getItem(USER_PROFILE) ?? "{}");
+    const mmData = MM_LISTES[userProfile.defaultMM];
+    const steps = mmData.mmStepsList || [];
+    setMMStepList(steps);
   }
 
   useEffect(() => {
     const gameResult = loadResults();
     setCurrentResult(gameResult);
-    getCurrentBet();
+    getMMSteps();
+    getCurrentGameData();
     setLoadingGame(false);
   }, []);
   
@@ -73,8 +86,8 @@ const GameAreaPage = () => {
   const handleAddHand = (handType: "P" | "B" | "T") => {
     setLoadingGame(true);
     const result = addHand(handType);
-    setCurrentResult([...result]);
-    getCurrentBet();
+    setCurrentResult(result);
+    getCurrentGameData();
     setLoadingGame(false);
   }
 
@@ -83,7 +96,7 @@ const GameAreaPage = () => {
     setOpenMenuDial(false);
     const result = restartGame();
     setCurrentResult(result);
-    getCurrentBet();
+    getCurrentGameData();
     setLoadingGame(false);
   }
 
@@ -92,7 +105,7 @@ const GameAreaPage = () => {
     setOpenMenuDial(false);
     const result = undoHand();
     setCurrentResult(result);
-    getCurrentBet();
+    getCurrentGameData();
     setLoadingGame(false);
   }
   
@@ -151,38 +164,38 @@ const GameAreaPage = () => {
           {/* Player */}
           <div className="bg-blue-100 dark:bg-blue-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-blue-200 dark:border-blue-900">
             <div className="font-bold text-xs text-blue-800 dark:text-white uppercase tracking-wider">Player</div>
-            <div className=" font-bold text-sm text-blue-700 dark:text-white">6</div>
+            <div className=" font-bold text-sm text-blue-700 dark:text-white">{currentGameData.PlayerCount}</div>
           </div>
 
           {/* Tie */}
           <div className="bg-green-100 dark:bg-green-400/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-green-200 dark:border-green-900">
             <div className="font-bold text-xs text-green-800 dark:text-white uppercase tracking-wider">Tie</div>
-            <div className=" font-bold text-sm text-green-700 dark:text-white">1</div>
+            <div className=" font-bold text-sm text-green-700 dark:text-white">{currentGameData.TieCount}</div>
           </div>
 
           {/* Banker */}
           <div className="bg-red-100 dark:bg-red-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-red-200 dark:border-pink-900">
             <div className="font-bold text-xs text-red-600 dark:text-white uppercase tracking-wider">Banker</div>
-            <div className=" font-bold text-sm text-red-700 dark:text-white">8</div>
+            <div className=" font-bold text-sm text-red-700 dark:text-white">{currentGameData.BankerCount}</div>
           </div>
 
           {/* Hand */}
           <div className="bg-gray-300 dark:bg-gray-800 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="font-bold text-xs text-gray-800 dark:text-gray-400 uppercase tracking-wider">Hand</div>
-            <div className=" font-bold text-sm text-gray-900 dark:text-gray-100">15</div>
+            <div className=" font-bold text-sm text-gray-900 dark:text-gray-100">{currentGameData.HandCount}</div>
           </div>
         </div>
 
         {/* Prediction and Stake */}
         <div className="w-full flex overflow-hidden gap-2">
           {/* Active Bet */}
-          <div className={`flex flex-1 flex-col ${currentBet === "Banker" ? "bg-red-400" : currentBet === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
+          <div className={`flex flex-1 flex-col ${currentGameData.Prediction === "Banker" ? "bg-red-400" : currentGameData.Prediction === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
             <div className="flex justify-between items-center">
               <div className="text-xs text-white font-bold">CHOP</div>
               <div className="text-xs text-white font-bold">2 - 1</div>
             </div>
 
-            <div className="text-lg text-white font-bold text-center uppercase">{currentBet}</div>
+            <div className="text-lg text-white font-bold text-center uppercase">{currentGameData.Prediction}</div>
 
             <div className="text-xs text-white font-bold">Authors MM</div>
           </div>
@@ -194,43 +207,23 @@ const GameAreaPage = () => {
             </span>
 
             <span className="text-lg font-bold text-white">
-              1.00
+              {(mmStepList?.[mmStepIndex]?.[0] ?? 0).toFixed(2)}
             </span>
           </div>
         </div>
 
         {/* MM */}
-        <div
-          className="@container flex justify-between items-center gap-2 overflow-x-auto scrollbar-custom">
-          {/* Base */}
-          <div className="bg-primary/90 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="font-bold text-xs text-white dark:text-gray-400 tracking-wider text-center">Base</div>
-            <div className="text-sm text-white text-center">1.00</div>
-          </div>
-
-          {/* Step 2 */}
-          <div className="bg-primary/10 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="font-bold text-xs text-gray-500 dark:text-gray-400 tracking-wider text-center">Step 2</div>
-            <div className=" text-sm text-center">3.00</div>
-          </div>
-
-          {/* Step 3 */}
-          <div className="bg-primary/10 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="font-bold text-xs text-gray-500 dark:text-gray-400 tracking-wider text-center">Step 3</div>
-            <div className=" text-sm text-center">7.00</div>
-          </div>
-
-          {/* Step 4 */}
-          <div className="bg-primary/10 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="font-bold text-xs text-gray-500 dark:text-gray-400 tracking-wider text-center">Step 4</div>
-            <div className="text-sm text-center">15.00</div>
-          </div>
-
-          {/* Step 5 */}
-          <div className="bg-primary/10 px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="font-bold text-xs text-gray-500 dark:text-gray-400 tracking-wider text-center">Step 5</div>
-            <div className="text-sm text-center">15.00</div>
-          </div>
+        <div className="@container flex justify-between items-center gap-2 overflow-x-auto scrollbar-custom">
+          {mmStepList.map((step: any, index: number)=>{
+            const currentStap = (index === mmStepIndex && currentGameData.Prediction !== "Wait");
+            return (
+              <div key={index} className={`${currentStap ? "bg-primary/90" : "bg-primary/10" } px-2 py-1 flex-shrink-0 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700`}>
+                <div className={`${currentStap ? "text-white dark:text-gray-100" : "text-gray-500 dark:text-gray-400"} font-bold text-xs tracking-wider text-center`}>Base</div>
+                <div className={`${currentStap && "text-white"} text-sm text-center`}>{(step?.[0] ?? 0).toFixed(2)}</div>
+              </div>
+            );
+          })}
+          
         </div>
 
         {/* Current profit */}
@@ -239,7 +232,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-primary tracking-wider ">Start</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">500.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.StartingBalance}</div>
             </div>
             <div>
               <div className="p-1 text-primary ">
@@ -252,7 +245,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-gray-400 tracking-wider ">Now</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">6.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.CurrentBalance}</div>
             </div>
             <div>
               <div className="p-1 text-gray-400 ">
@@ -265,7 +258,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-red-400 tracking-wider ">Units</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">3.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">0.00</div>
             </div>
             <div>
               <div className="p-1 text-red-400 ">
@@ -278,7 +271,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-green-600 tracking-wider ">Profit</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">+ 6.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.ProfitAmount}</div>
             </div>
             <div>
               <div className="p-1 text-green-500 ">
