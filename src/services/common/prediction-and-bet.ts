@@ -20,7 +20,7 @@ export const NextPredictionAndBet = (results: any, UserGame: any) => {
 
    let tmpResults = results.filter((r: any) => r.Winner !== "T") ?? [];
 
-   const gamePrediction = game_process(tmpResults) ;
+   const gamePrediction = game_process(tmpResults);
    rt.Prediction = gamePrediction.Prediction;
    rt.DetectedPattern = gamePrediction.DetectedPattern;
 
@@ -40,7 +40,6 @@ export const NextPredictionAndBet = (results: any, UserGame: any) => {
    const mm_process = MM_LOOKUP[defaultMM];
 
    const { BetAmount, MMStep } = mm_process(tmpResultList);
-
    if (gamePrediction.CalculateBet) {
       rt.BetAmount = BetAmount;
       rt.BetUnit = BetAmount / (defaultBaseUnit || 1);

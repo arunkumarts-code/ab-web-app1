@@ -6,23 +6,67 @@ import EyeRoad from "@/components/roads/big-eye-boad/EyeRoad";
 import RoachRoad from "@/components/roads/cockroach-road/RoachRoad";
 import SmallRoad from "@/components/roads/small-raod/SmallRoad";
 import { Briefcase, Package, TrendingUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { FaUndo, FaTrashAlt, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { GameResult } from "@/types";
 import GlobalLoader from "@/components/common/GlobalLoader";
-import { addHand, getCurrectGameData, loadResults, restartGame, undoHand } from "@/services/games";
+import { addHand, getCurrectGameData, loadResults, restartGame, skipHand, undoHand } from "@/services/games";
 import { USER_PROFILE } from "@/constants/roads-list";
 import { MM_LISTES } from "@/services/money-management/constants/mm-lists";
+import { updateEyeRoad } from "@/components/roads/generate-road";
 
 const GameAreaPage = () => {
   const [currentGameData, setCurrentGameData] = useState<any>(null);
   const [openMenuDial, setOpenMenuDial] = useState(false);
-  const [currentResult, setCurrentResult] = useState<GameResult[]>([]);
+  const [currentResult, setCurrentResult] = useState<any[]>([]);
   const [loadingGame, setLoadingGame] =useState(true);
   const [mmStepList, setMMStepList] = useState<any[]>([]);
+  const [mmStepData, setMMStepData] = useState<any | null>(null);
   const [mmStepIndex, setMMStepIndex] = useState(0);
+
+  const roadSymbolPrediction = useMemo(() => {
+    const bankerRoadData = {
+      resultType: 1,
+      isBankerPair: false,
+      isPlayerPair: false
+    };
+    const nextBankerResult = [...currentResult, bankerRoadData];
+    const bankerEye = updateEyeRoad(nextBankerResult, 1);
+    const bankerSmall = updateEyeRoad(nextBankerResult, 2);
+    const bankerRoach = updateEyeRoad(nextBankerResult, 4);
+    const bankerEyeLast = bankerEye.compactColumns;
+    const bankerSmallLast = bankerSmall.compactColumns;
+    const bankerRoachLast = bankerRoach.compactColumns;
+
+    const playerRoadData = {
+      resultType: 2,
+      isBankerPair: false,
+      isPlayerPair: false
+    };
+    const nextPlayerResult = [...currentResult, playerRoadData];
+    const playerEye = updateEyeRoad(nextPlayerResult, 1);
+    const playerSmall = updateEyeRoad(nextPlayerResult, 2);
+    const playerRoach = updateEyeRoad(nextPlayerResult, 4);
+    const playerEyeLast = playerEye.compactColumns;
+    const playerSmallLast = playerSmall.compactColumns;
+    const playerRoachLast = playerRoach.compactColumns;
+
+    const bankerResult = {
+      "Eye": bankerEyeLast?.at(-1)?.at(-1) || 0,
+      "Small": bankerSmallLast?.at(-1)?.at(-1) || 0,
+      "Roach": bankerRoachLast?.at(-1)?.at(-1) || 0
+    }
+
+    const playerResult = { 
+      "Eye": playerEyeLast?.at(-1)?.at(-1) || 0,
+      "Small": playerSmallLast?.at(-1)?.at(-1) || 0,
+      "Roach": playerRoachLast?.at(-1)?.at(-1) || 0
+    }
+
+    return [bankerResult, playerResult]
+  }, [currentResult]);
 
   const roadRefs = {
     bigRoad: useRef<HTMLDivElement>(null),
@@ -49,6 +93,7 @@ const GameAreaPage = () => {
   const getMMSteps = () => {
     const userProfile = JSON.parse(localStorage.getItem(USER_PROFILE) ?? "{}");
     const mmData = MM_LISTES[userProfile.defaultMM];
+    setMMStepData(mmData);
     const steps = mmData.mmStepsList || [];
     setMMStepList(steps);
   }
@@ -108,6 +153,13 @@ const GameAreaPage = () => {
     getCurrentGameData();
     setLoadingGame(false);
   }
+
+  const hadleSkip = () => {
+    setLoadingGame(true);
+    skipHand();
+    getCurrentGameData();
+    setLoadingGame(false);
+  }
   
   if (loadingGame){
     return (
@@ -120,30 +172,112 @@ const GameAreaPage = () => {
       {/* Road Tabs */}
       <div className="space-y-3 flex flex-col h-full w-full">
         <div className="flex w-full flex-col md:flex-row gap-2">
-          <div className="w-full overflow-hidden" ref={roadRefs.bigRoad}>
-            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Big Road</div>
+          <div className="md:w-50 flex-1 overflow-hidden" ref={roadRefs.bigRoad}>
+            <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Big Road</div>
             <BigRoad columns={widths.bigRoad} data={currentResult} cellSize={25} />
           </div>
-          <div className="w-full overflow-hidden" ref={roadRefs.beadRoad}>
-            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Bead Road</div>
+          <div className="md:w-100 overflow-hidden" ref={roadRefs.beadRoad}>
+            <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Bead Road</div>
             <BeadRoad columns={widths.beadRoad} data={currentResult} cellSize={25} />
           </div>
         </div>
 
         <div className="flex w-full flex-col gap-2">
-          <div className="w-full overflow-hidden" ref={roadRefs.eyeRoad}>
-            <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Big Eye Boy Road</div>
-            <EyeRoad columns={widths.eyeRoad} data={currentResult} cellSize={25} />
+          <div className="w-full overflow-hidden flex flex-row box-border" ref={roadRefs.eyeRoad}>
+            <div className="w-100 flex-1">
+              <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Big Eye Boy Road</div>
+              <EyeRoad columns={widths.eyeRoad} data={currentResult} cellSize={25} />
+            </div>
+            <div className="w-40 h-full flex flex-col ms-2 rounded-lg overflow-hidden border border-border bg-slate-100 dark:bg-slate-900 box-border">
+              <div className="p-1 text-xs bg-primary text-white rounded-tl-lg rounded-tr-lg uppercase tracking-wider font-bold">Next</div>
+              <div className="bg-slate-100 dark:bg-slate-900 p-1 flex flex-col">
+                <div
+                  className="w-full flex gap-1 rounded-md transition"
+                >
+                  <div
+                    className={`w-full aspect-square flex justify-center items-center
+                      text-white text-lg font-bold rounded bg-red-600
+                    `}
+                  >
+                    B
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[0].Eye !== 0  && <div
+                      className={`w-4 h-4 rounded-full border-3
+                        ${roadSymbolPrediction[0].Eye === 1 ? "border-red-600" :"border-blue-500"}
+                      `}
+                    />}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[0].Small !== 0  && <div
+                      className={`w-4 h-4 rounded-full
+                        ${roadSymbolPrediction[0].Small === 1 ? "bg-red-600" :  "bg-blue-500" }
+                      `}
+                    />}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[0].Roach !== 0 && <div className="w-4 h-4 flex items-center justify-center">
+                      <div
+                        className={`w-[3px] h-full rotate-45
+                          ${roadSymbolPrediction[0].Roach === 1 ? "bg-red-600" :  "bg-blue-500"}
+                        `}
+                      />
+                    </div>}
+                  </div>
+                </div>
+                <div
+                  className={`w-full flex gap-1 rounded-md mt-1 transition
+                  `}
+                >
+                  <div  
+                    className={`w-full aspect-square flex justify-center items-center
+                      text-white text-lg font-bold rounded bg-blue-600
+                    `}
+                  >
+                    P
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[1].Eye !== 0 && <div
+                      className={`w-4 h-4 rounded-full border-3
+                        ${roadSymbolPrediction[1].Eye === 1 ? "border-red-600" : "border-blue-500" }
+                      `}
+                    />}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[1].Small !== 0 && <div
+                      className={`w-4 h-4 rounded-full
+                        ${roadSymbolPrediction[1].Small === 1 ? "bg-red-600" : "bg-blue-500"}
+                      `}
+                    />}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      {roadSymbolPrediction[1].Roach !== 0 &&<div
+                        className={`w-[3px] h-full rotate-45
+                          ${roadSymbolPrediction[1].Roach === 1 ? "bg-red-600" : "bg-blue-500"}
+                        `}
+                      />}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-1 w-full flex-col md:flex-row gap-2">
             <div className="w-full overflow-hidden" ref={roadRefs.smallRoad}>
-              <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Small Road</div>
+              <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Small Road</div>
               <SmallRoad columns={widths.smallRoad} data={currentResult} cellSize={25} />
             </div>
 
             <div className="w-full overflow-hidden" ref={roadRefs.roachRoad}>
-              <div className="p-1 text-xs bg-primary text-white tracking-wider rounded-tl-lg rounded-tr-lg">Cockroach Road</div>
+              <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Cockroach Road</div>
               <RoachRoad columns={widths.roachRoad} data={currentResult} cellSize={25} />
             </div>
           </div>
@@ -197,7 +331,7 @@ const GameAreaPage = () => {
 
             <div className="text-lg text-white font-bold text-center uppercase">{currentGameData.Prediction}</div>
 
-            <div className="text-xs text-white font-bold">Authors MM</div>
+            <div className="text-xs text-white font-bold uppercase">{mmStepData.mmTitle}</div>
           </div>
 
           {/* Stake */}
@@ -207,7 +341,7 @@ const GameAreaPage = () => {
             </span>
 
             <span className="text-lg font-bold text-white">
-              {(mmStepList?.[mmStepIndex]?.[0] ?? 0).toFixed(2)}
+              {(currentGameData.BetAmount).toFixed(2)}
             </span>
           </div>
         </div>
@@ -258,7 +392,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-red-400 tracking-wider ">Units</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">0.00</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.Units}</div>
             </div>
             <div>
               <div className="p-1 text-red-400 ">
@@ -374,6 +508,7 @@ const GameAreaPage = () => {
                   transition-all duration-200
                   hover:scale-110 hover:shadow-xl
                   active:scale-95'
+            onClick={hadleSkip}
           >
             S
           </div>

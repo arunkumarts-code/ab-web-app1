@@ -1,7 +1,8 @@
 import { GameActions, GameResult, GameResult1, PredictionType } from "@/types";
 import { NextPredictionAndBet } from "../common/prediction-and-bet";
 import { GAME_LISTES } from "./constants/game-lists";
-import { USER_GAME_RESULT, USER_PROFILE } from "@/constants/roads-list";
+import { USER_GAME_RESULT, USER_PROFILE, USER_RECOVERY_LIST } from "@/constants/roads-list";
+import { GAME_TYPE } from "./constants/game-types";
 
 const convertResult = (results: any[]) => {
    const raw = results.map((p) => {
@@ -42,6 +43,8 @@ export const getCurrectGameData = () => {
       StartingBalance: userProfile.defaultStartingBalance || 0,
       CurrentBalance: 0,
       ProfitAmount: 0,
+      BetAmount: 0,
+      Units: 0,
    }
    const lastGameResult = userGameResult.at(-1);
 
@@ -56,7 +59,7 @@ export const getCurrectGameData = () => {
       if (result.Winner === "T") rt.TieCount += 1;
    })
 
-   const predictionBet = lastGameResult.NextHand.Prediction;
+   const predictionBet = lastGameResult.NextHand.Wait ? "Wait" : lastGameResult.NextHand.Prediction;
    if(predictionBet === "P") {
       rt.Prediction = "Player";
    } 
@@ -70,6 +73,8 @@ export const getCurrectGameData = () => {
    rt.MMStepIndex = lastGameResult.NextHand.MMStep;
    rt.CurrentBalance = lastGameResult.CurrentBalance;
    rt.ProfitAmount = lastGameResult.ProfitAmount;
+   rt.BetAmount = lastGameResult.NextHand.BetAmount;
+   rt.Units = lastGameResult.Units;
 
    return rt;
 }
@@ -79,6 +84,8 @@ export const addHand = (hand: GameActions) => {
    const userProfile = JSON.parse(userProfileStore ?? "{}");
    const userGameResultStore = localStorage.getItem(USER_GAME_RESULT);
    const userGameResult = JSON.parse(userGameResultStore ?? "[]");
+   const userRecoryListStore = localStorage.getItem(USER_RECOVERY_LIST);
+   const userRecoryList = JSON.parse(userRecoryListStore ?? "[]");
    const gameData = GAME_LISTES[userProfile.defaultGame];
 
    const lastGameResult = userGameResult.at(-1);
@@ -96,18 +103,21 @@ export const addHand = (hand: GameActions) => {
          BetAmount: 0,
          BetUnit: 0,
          MMStep: 0,
+         Wait: false
       },
       MMStep: lastGameResult?.NextHand.MMStep ?? 0,
-      iCount1: 0,
-      iCount2: 0,
-      VirtualWinRequired: false,
-      VirtualLossRequired: false,
+      iCount1: lastGameResult?.iCount1 || 0,
+      iCount2: lastGameResult?.iCount2 || 0,
+      VirtualWinRequired: lastGameResult?.VirtualWinRequired ||  false,
+      VirtualLossRequired: lastGameResult?.VirtualLossRequired || false,
       BaseUnit: lastGameResult?.NextHand.BetUnit || userProfile.defaultBaseUnit,
       StartingBalance: userProfile.defaultStartingBalance,
       CurrentBalance: lastGameResult?.CurrentBalance || userProfile.defaultStartingBalance,
       ProfitAmount: lastGameResult?.ProfitAmount || 0,
+      Units: lastGameResult?.Units || 0,
       GMId: userProfile.defaultGame,
       MMId: userProfile.defaultMM,
+      IsRecovered: true,
    }
 
    if (
@@ -118,26 +128,46 @@ export const addHand = (hand: GameActions) => {
    ){
       rt.Result = rt.Winner === rt.Prediction ? "Win" : "Loss";
    }
+   
+   let newRecoverResult = userGameResult;
 
    if (rt.Result === "Win") {
+      userRecoryList.forEach((r:any)=>{
+
+         newRecoverResult[r - 1] = {
+            ...newRecoverResult[r - 1],
+            IsRecovered: true,
+         };
+      })
+      rt.Units += (rt.Bet / userProfile.defaultBaseUnit);
       if (rt.Winner === "B") rt.Bet *= 0.95;
+      rt.CurrentBalance = Number(
+         (rt.CurrentBalance + rt.Bet).toFixed(2)
+      );
+      rt.ProfitAmount = Number(
+         (rt.ProfitAmount + rt.Bet).toFixed(2)
+      );
    } else if (rt.Result === "Loss") {
-      rt.Bet = -rt.Bet;
-      rt.BaseUnit = -rt.BaseUnit;
+      rt.Units -= (rt.Bet / userProfile.defaultBaseUnit);
+      rt.IsRecovered = false;
+      rt.CurrentBalance = Number(
+         (rt.CurrentBalance + (-rt.Bet)).toFixed(2)
+      );
+      rt.ProfitAmount = Number(
+         (rt.ProfitAmount + (-rt.Bet)).toFixed(2)
+      );
    } else {
       rt.Bet = 0;
       rt.BaseUnit = 0;
+      rt.CurrentBalance = Number(
+         (rt.CurrentBalance + rt.Bet).toFixed(2)
+      );
+      rt.ProfitAmount = Number(
+         (rt.ProfitAmount + rt.Bet).toFixed(2)
+      );
    }
 
-   rt.CurrentBalance = Number(
-      (rt.CurrentBalance + rt.Bet).toFixed(2)
-   );
-
-   rt.ProfitAmount = Number(
-      (rt.ProfitAmount + rt.Bet).toFixed(2)
-   );
-
-   let newGameResult = [...userGameResult, rt] 
+   let newGameResult = [...newRecoverResult, rt] 
    if (newGameResult.length > gameData.gmStartAt - 1) {
       const tmpNextHand = NextPredictionAndBet(newGameResult, userProfile);
       rt.iCount1 = tmpNextHand.iCount1;
@@ -149,9 +179,14 @@ export const addHand = (hand: GameActions) => {
       rt.NextHand.Prediction = tmpNextHand.Prediction
       rt.NextHand.DetectedPattern = tmpNextHand.DetectedPattern
       rt.NextHand.MMStep = tmpNextHand.MMStep
-      console.log(rt)
+
+      if (tmpNextHand.VirtualLossRequired || tmpNextHand.VirtualWinRequired) {
+         rt.NextHand.Wait = true;
+         rt.NextHand.BetAmount = 0
+         rt.NextHand.BetUnit = 0
+      }
    }
-   newGameResult = [...userGameResult, rt] 
+   newGameResult = [...newRecoverResult, rt] 
    
    return saveResults(newGameResult);
 }
@@ -159,6 +194,7 @@ export const addHand = (hand: GameActions) => {
 export const restartGame = (): GameResult[] => {
    try {
       localStorage.removeItem(USER_GAME_RESULT);
+      localStorage.removeItem(USER_RECOVERY_LIST);
       return [];
    } catch (error) {
       console.error('Error restarting game:', error);
@@ -182,4 +218,19 @@ export const undoHand = (): GameResult[] => {
       console.error('Error undoing hand:', error);
       return [];
    }
+}
+
+export const skipHand = () => {
+   const userGameResultStore = localStorage.getItem(USER_GAME_RESULT);
+   const userGameResult = JSON.parse(userGameResultStore ?? "[]");
+
+   userGameResult[userGameResult.length - 1] = {
+      ...userGameResult[userGameResult.length - 1],
+      NextHand: {
+         ...userGameResult[userGameResult.length - 1].NextHand,
+         BetAmount: 0,
+      },
+   };
+
+   localStorage.setItem(USER_GAME_RESULT, JSON.stringify(userGameResult));
 }

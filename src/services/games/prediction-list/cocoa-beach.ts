@@ -66,8 +66,6 @@ const Pattern_deductions = (ResultList: any[] = []) => {
 };
 
 export const Cocoa_Beaach_Prediction = (results: any[]) => {
-   console.log("results cocoa beach")
-   console.log(results)
    let Prediction = "WAIT";
    let CalculateBet = false;
    let VirtualLossRequired = false;
@@ -180,7 +178,7 @@ export const Cocoa_Beaach_Prediction = (results: any[]) => {
 
    CalculateBet =
       Prediction !== "WAIT" && !VirtualLossRequired && !VirtualWinRequired;
-
+      
    return {
       Prediction,
       CalculateBet,

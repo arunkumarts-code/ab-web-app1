@@ -1,43 +1,57 @@
-import { MM_LISTES } from "../constants/mm-lists";
+import { USER_PROFILE, USER_RECOVERY_LIST } from "@/constants/roads-list";
 
 export const Ragnar_MM = (results: any) => {
-   const userProfileStore = localStorage.getItem("User_Profile");
+   const userProfileStore = localStorage.getItem(USER_PROFILE);
    const userProfile = JSON.parse(userProfileStore ?? "{}");
+   const userRecoryListStore = localStorage.getItem(USER_RECOVERY_LIST);
+   const userRecoryList = JSON.parse(userRecoryListStore ?? "[]");
 
    let BetAmount = 0;
    let MMStep = 0;
    const BaseUnit = userProfile?.defaultBaseUnit || 5;
    const maxBetAmount = BaseUnit * 5;
-
-   const { defaultMM } = userProfile;
-   const mmData = MM_LISTES[defaultMM];
-   if (!mmData?.mmStepsList?.length) {
-      return { BetAmount: BaseUnit, MMStep: 0 };
-   }
-
+   
    const ResultList = results || [];
-   const resultLength = ResultList.length || 0;
+   const ResultLength = ResultList.length || 0;
+   const LastHand = ResultList.at(-1)
+   const LastResult = LastHand?.Result || "Loss"; 
+   let lastBetAmount = +LastHand?.Bet || BaseUnit; 
 
-   const LastHand = ResultList.at(-2)
-   const LastResult = LastHand?.Result || "Loss";
-   let MMStepIndex = LastHand?.MMStep || 0;
-   if (MMStepIndex >= mmData.mmStepsList.length - 1) {
-      MMStepIndex = 0;
+   let RecoveryList = ResultList
+      .map((r: any) => (!r.IsRecovered ? r : null))
+      .filter((r: any) => r !== null)
+
+   if (RecoveryList.length === 0){
+      localStorage.removeItem(USER_RECOVERY_LIST);
    }
-   const [amount, unit] = mmData.mmStepsList[MMStepIndex];
+   
+   let betamount = 0;
+   if (LastResult === "Win") {
+      if (RecoveryList.length > 0) {
+         if (BaseUnit !== lastBetAmount) {
+            for (let i = 0; i < RecoveryList.length; i++){
+               betamount += RecoveryList[i].Bet;
+               userRecoryList.push(RecoveryList[i].Id);
+               if (maxBetAmount <= betamount){
+                  break;
+               }
+            }
+            localStorage.setItem(USER_RECOVERY_LIST, JSON.stringify(userRecoryList));
+         }
+      }
+   }
 
-   if (LastResult === "Loss" || resultLength <= 1) {
+
+   if (LastResult === "Loss" || ResultLength <= 1) {
       BetAmount = BaseUnit;
-      MMStepIndex = 0;
    } else if (LastResult === "Win") {
-      MMStep = Number(MMStepIndex) + 1;
-      BetAmount = Math.min(
-         BaseUnit * amount * unit,
-         maxBetAmount
-      );
-   }
-   if (MMStep >= mmData.mmStepsList.length - 1) {
-      MMStep = 0;
+      if (RecoveryList.length > 0) {
+         const totalBet = RecoveryList.reduce((sum: number, r: any) => {
+            return sum + (r.Bet || 0);
+         }, 0);
+         if (totalBet > maxBetAmount) BetAmount = maxBetAmount;
+         else BetAmount = totalBet || BaseUnit;
+      } else BetAmount = BaseUnit;
    }
 
    return { BetAmount, MMStep };

@@ -8,7 +8,6 @@ const EyeRoad = ({ columns, data, cellSize=32 }: { columns: number, data: GameRe
    const eyeRoadData = useMemo(() => {
       const eye = updateEyeRoad(data, 1);
       const eyeRoadData = toRoadQuadData(eye.board);
-
       return eyeRoadData
    }, [data]);
 
