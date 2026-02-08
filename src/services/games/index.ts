@@ -1,8 +1,7 @@
-import { GameActions, GameResult, GameResult1, PredictionType } from "@/types";
+import { GameActions, GameResult } from "@/types";
 import { NextPredictionAndBet } from "../common/prediction-and-bet";
 import { GAME_LISTES } from "./constants/game-lists";
-import { USER_GAME_RESULT, USER_PROFILE, USER_RECOVERY_LIST } from "@/constants/roads-list";
-import { GAME_TYPE } from "./constants/game-types";
+import { USER_GAME_RESULT, USER_PROFILE } from "@/constants/roads-list";
 
 const convertResult = (results: any[]) => {
    const raw = results.map((p) => {
@@ -84,8 +83,6 @@ export const addHand = (hand: GameActions) => {
    const userProfile = JSON.parse(userProfileStore ?? "{}");
    const userGameResultStore = localStorage.getItem(USER_GAME_RESULT);
    const userGameResult = JSON.parse(userGameResultStore ?? "[]");
-   const userRecoryListStore = localStorage.getItem(USER_RECOVERY_LIST);
-   const userRecoryList = JSON.parse(userRecoryListStore ?? "[]");
    const gameData = GAME_LISTES[userProfile.defaultGame];
 
    const lastGameResult = userGameResult.at(-1);
@@ -103,8 +100,10 @@ export const addHand = (hand: GameActions) => {
          BetAmount: 0,
          BetUnit: 0,
          MMStep: 0,
-         Wait: false
+         Wait: false,
+         RecoveryList : []
       },
+      RecoveryList: lastGameResult?.NextHand.RecoveryList ?? [],
       MMStep: lastGameResult?.NextHand.MMStep ?? 0,
       iCount1: lastGameResult?.iCount1 || 0,
       iCount2: lastGameResult?.iCount2 || 0,
@@ -128,17 +127,21 @@ export const addHand = (hand: GameActions) => {
    ){
       rt.Result = rt.Winner === rt.Prediction ? "Win" : "Loss";
    }
+   if (lastGameResult?.NextHand.Wait){
+      rt.Result = "-";
+   }
    
    let newRecoverResult = userGameResult;
 
    if (rt.Result === "Win") {
-      userRecoryList.forEach((r:any)=>{
-
-         newRecoverResult[r - 1] = {
-            ...newRecoverResult[r - 1],
-            IsRecovered: true,
-         };
-      })
+      if(rt.Bet !== 0 ){
+         rt.RecoveryList.forEach((r:any)=>{
+            newRecoverResult[r - 1] = {
+               ...newRecoverResult[r - 1],
+               IsRecovered: true,
+            };
+         })
+      }
       rt.Units += (rt.Bet / userProfile.defaultBaseUnit);
       if (rt.Winner === "B") rt.Bet *= 0.95;
       rt.CurrentBalance = Number(
@@ -179,6 +182,7 @@ export const addHand = (hand: GameActions) => {
       rt.NextHand.Prediction = tmpNextHand.Prediction
       rt.NextHand.DetectedPattern = tmpNextHand.DetectedPattern
       rt.NextHand.MMStep = tmpNextHand.MMStep
+      rt.NextHand.RecoveryList = tmpNextHand.RecoveryList
 
       if (tmpNextHand.VirtualLossRequired || tmpNextHand.VirtualWinRequired) {
          rt.NextHand.Wait = true;
@@ -194,7 +198,6 @@ export const addHand = (hand: GameActions) => {
 export const restartGame = (): GameResult[] => {
    try {
       localStorage.removeItem(USER_GAME_RESULT);
-      localStorage.removeItem(USER_RECOVERY_LIST);
       return [];
    } catch (error) {
       console.error('Error restarting game:', error);
@@ -202,9 +205,12 @@ export const restartGame = (): GameResult[] => {
    }
 }
 
-export const undoHand = (): GameResult[] => {
+export const undoHand = () => {
    try {
-      const gameData: GameResult1[] = JSON.parse(
+      const userProfileStore = localStorage.getItem(USER_PROFILE);
+      const userProfile = JSON.parse(userProfileStore ?? "{}");
+
+      const gameData = JSON.parse(
          localStorage.getItem(USER_GAME_RESULT) ?? "[]"
       );
 
@@ -212,7 +218,48 @@ export const undoHand = (): GameResult[] => {
          return [];
       }
 
-      const newGameData = gameData.slice(0, -1);
+      const lastHand = gameData.at(-1);
+      const lastHandRecoveryList = lastHand?.RecoveryList || [];
+      let newRecoverResult = gameData;
+
+      if (lastHandRecoveryList.length > 0) {
+         lastHandRecoveryList.forEach((r: any) => {
+            newRecoverResult[r - 1] = {
+               ...newRecoverResult[r - 1],
+               IsRecovered: false,
+            };
+         })
+      }
+
+      const newGameData = newRecoverResult.slice(0, -1);
+
+      const tmpNextHand = NextPredictionAndBet(newGameData, userProfile);
+      const nextHand: any = {
+         BetAmount: tmpNextHand.BetAmount,
+         BetUnit: tmpNextHand.BetUnit,
+         Prediction: tmpNextHand.Prediction,
+         DetectedPattern: tmpNextHand.DetectedPattern,
+         MMStep: tmpNextHand.MMStep,
+         RecoveryList: tmpNextHand.RecoveryList,
+      };
+      if (tmpNextHand.VirtualLossRequired || tmpNextHand.VirtualWinRequired) {
+         nextHand.Wait = true;
+         nextHand.BetAmount = 0;
+         nextHand.BetUnit = 0;
+      }
+      
+      newRecoverResult[newRecoverResult.length - 1] = {
+         ...newRecoverResult[newRecoverResult.length - 1],
+         iCount1 : tmpNextHand.iCount1,
+         iCount2 : tmpNextHand.iCount2,
+         VirtualLossRequired : tmpNextHand.VirtualLossRequired,
+         VirtualWinRequired : tmpNextHand.VirtualWinRequired,
+         NextHand: {
+            ...newRecoverResult[newRecoverResult.length - 1].NextHand,
+            ...nextHand,
+         }
+      }
+
       return saveResults(newGameData);
    } catch (error) {
       console.error('Error undoing hand:', error);

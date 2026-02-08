@@ -1,10 +1,9 @@
 import { USER_PROFILE, USER_RECOVERY_LIST } from "@/constants/roads-list";
 
 export const Ragnar_MM = (results: any) => {
+   debugger
    const userProfileStore = localStorage.getItem(USER_PROFILE);
    const userProfile = JSON.parse(userProfileStore ?? "{}");
-   const userRecoryListStore = localStorage.getItem(USER_RECOVERY_LIST);
-   const userRecoryList = JSON.parse(userRecoryListStore ?? "[]");
 
    let BetAmount = 0;
    let MMStep = 0;
@@ -16,27 +15,21 @@ export const Ragnar_MM = (results: any) => {
    const LastHand = ResultList.at(-1)
    const LastResult = LastHand?.Result || "Loss"; 
    let lastBetAmount = +LastHand?.Bet || BaseUnit; 
+   const userRecoryList = [];
 
    let RecoveryList = ResultList
       .map((r: any) => (!r.IsRecovered ? r : null))
       .filter((r: any) => r !== null)
-
-   if (RecoveryList.length === 0){
-      localStorage.removeItem(USER_RECOVERY_LIST);
-   }
    
    let betamount = 0;
-   if (LastResult === "Win") {
+   if (LastResult === "Win" && LastHand?.Bet > 0) {
       if (RecoveryList.length > 0) {
-         if (BaseUnit !== lastBetAmount) {
-            for (let i = 0; i < RecoveryList.length; i++){
-               betamount += RecoveryList[i].Bet;
-               userRecoryList.push(RecoveryList[i].Id);
-               if (maxBetAmount <= betamount){
-                  break;
-               }
+         for (let i = 0; i < RecoveryList.length; i++){
+            betamount += RecoveryList[i].Bet;
+            userRecoryList.push(RecoveryList[i].Id);
+            if (maxBetAmount <= betamount){
+               break;
             }
-            localStorage.setItem(USER_RECOVERY_LIST, JSON.stringify(userRecoryList));
          }
       }
    }
@@ -45,7 +38,7 @@ export const Ragnar_MM = (results: any) => {
    if (LastResult === "Loss" || ResultLength <= 1) {
       BetAmount = BaseUnit;
    } else if (LastResult === "Win") {
-      if (RecoveryList.length > 0) {
+      if (RecoveryList.length > 0 && LastHand?.Bet > 0) {
          const totalBet = RecoveryList.reduce((sum: number, r: any) => {
             return sum + (r.Bet || 0);
          }, 0);
@@ -54,5 +47,5 @@ export const Ragnar_MM = (results: any) => {
       } else BetAmount = BaseUnit;
    }
 
-   return { BetAmount, MMStep };
+   return { BetAmount, MMStep, userRecoryList };
 };

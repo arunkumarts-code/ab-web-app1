@@ -13,6 +13,7 @@ export const NextPredictionAndBet = (results: any, UserGame: any) => {
       iCount2: 0,
       VirtualWinRequired: false,
       VirtualLossRequired: false,
+      RecoveryList : []
    };   
 
    const { defaultGame, defaultMM, defaultBaseUnit } = UserGame;
@@ -39,11 +40,12 @@ export const NextPredictionAndBet = (results: any, UserGame: any) => {
 
    const mm_process = MM_LOOKUP[defaultMM];
 
-   const { BetAmount, MMStep } = mm_process(tmpResultList);
+   const { BetAmount, MMStep, userRecoryList } = mm_process(tmpResultList);
    if (gamePrediction.CalculateBet) {
       rt.BetAmount = BetAmount;
       rt.BetUnit = BetAmount / (defaultBaseUnit || 1);
       rt.MMStep = MMStep;
+      rt.RecoveryList = userRecoryList;
    }
 
    return rt;

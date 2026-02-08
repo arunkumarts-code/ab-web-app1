@@ -25,6 +25,7 @@ const GameAreaPage = () => {
   const [mmStepList, setMMStepList] = useState<any[]>([]);
   const [mmStepData, setMMStepData] = useState<any | null>(null);
   const [mmStepIndex, setMMStepIndex] = useState(0);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const roadSymbolPrediction = useMemo(() => {
     const bankerRoadData = {
@@ -97,6 +98,17 @@ const GameAreaPage = () => {
     const steps = mmData.mmStepsList || [];
     setMMStepList(steps);
   }
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuDial(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const gameResult = loadResults();
@@ -184,86 +196,85 @@ const GameAreaPage = () => {
 
         <div className="flex w-full flex-col gap-2">
           <div className="w-full overflow-hidden flex flex-row box-border" ref={roadRefs.eyeRoad}>
-            <div className="w-100 flex-1">
-              <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">Big Eye Boy Road</div>
+            <div className="w-50 flex-1">
+              <div className="p-1 text-xs bg-primary text-white uppercase tracking-wider font-bold rounded-tl-lg rounded-tr-lg">
+                Big Eye Boy Road
+              </div>
               <EyeRoad columns={widths.eyeRoad} data={currentResult} cellSize={25} />
             </div>
-            <div className="w-40 h-full flex flex-col ms-2 rounded-lg overflow-hidden border border-border bg-slate-100 dark:bg-slate-900 box-border">
-              <div className="p-1 text-xs bg-primary text-white rounded-tl-lg rounded-tr-lg uppercase tracking-wider font-bold">Next</div>
-              <div className="bg-slate-100 dark:bg-slate-900 p-1 flex flex-col">
-                <div
-                  className="w-full flex gap-1 rounded-md transition"
-                >
-                  <div
-                    className={`w-full aspect-square flex justify-center items-center
-                      text-white text-lg font-bold rounded bg-red-600
-                    `}
-                  >
+
+            <div className="min-w-[120px] h-full flex flex-col ms-2 rounded-lg overflow-hidden
+              border border-border bg-slate-100 dark:bg-slate-900 box-border">
+              <div className="p-1 text-xs bg-primary text-white rounded-tl-lg rounded-tr-lg uppercase tracking-wider font-bold text-center">
+                Prediction
+              </div>
+
+              <div className="bg-slate-100 dark:bg-slate-900 p-1 flex flex-col h-full justify-around">
+                <div className="w-full flex gap-[2px]">
+                  <div className="w-full aspect-square flex justify-center items-center
+                      text-sm font-bold text-white rounded bg-red-600">
                     B
                   </div>
 
                   <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    {roadSymbolPrediction[0].Eye !== 0  && <div
-                      className={`w-4 h-4 rounded-full border-3
-                        ${roadSymbolPrediction[0].Eye === 1 ? "border-red-600" :"border-blue-500"}
-                      `}
-                    />}
-                  </div>
-
-                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    {roadSymbolPrediction[0].Small !== 0  && <div
-                      className={`w-4 h-4 rounded-full
-                        ${roadSymbolPrediction[0].Small === 1 ? "bg-red-600" :  "bg-blue-500" }
-                      `}
-                    />}
-                  </div>
-
-                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    {roadSymbolPrediction[0].Roach !== 0 && <div className="w-4 h-4 flex items-center justify-center">
+                    {roadSymbolPrediction[0].Eye !== 0 && (
                       <div
-                        className={`w-[3px] h-full rotate-45
-                          ${roadSymbolPrediction[0].Roach === 1 ? "bg-red-600" :  "bg-blue-500"}
-                        `}
+                        className={`w-3 h-3 rounded-full border-2
+                ${roadSymbolPrediction[0].Eye === 1 ? "border-red-600" : "border-blue-500"}`}
                       />
-                    </div>}
+                    )}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[0].Small !== 0 && (
+                      <div
+                        className={`w-3 h-3 rounded-full
+                ${roadSymbolPrediction[0].Small === 1 ? "bg-red-600" : "bg-blue-500"}`}
+                      />
+                    )}
+                  </div>
+
+                  <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
+                    {roadSymbolPrediction[0].Roach !== 0 && (
+                      <div
+                        className={`w-[2px] h-3 rotate-45
+                ${roadSymbolPrediction[0].Roach === 1 ? "bg-red-600" : "bg-blue-500"}`}
+                      />
+                    )}
                   </div>
                 </div>
-                <div
-                  className={`w-full flex gap-1 rounded-md mt-1 transition
-                  `}
-                >
-                  <div  
-                    className={`w-full aspect-square flex justify-center items-center
-                      text-white text-lg font-bold rounded bg-blue-600
-                    `}
-                  >
+
+                <div className="w-full flex gap-[2px]">
+                  <div className="w-full aspect-square flex justify-center items-center
+                        text-sm font-bold text-white rounded bg-blue-600">
                     P
                   </div>
 
                   <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    {roadSymbolPrediction[1].Eye !== 0 && <div
-                      className={`w-4 h-4 rounded-full border-3
-                        ${roadSymbolPrediction[1].Eye === 1 ? "border-red-600" : "border-blue-500" }
-                      `}
-                    />}
+                    {roadSymbolPrediction[1].Eye !== 0 && (
+                      <div
+                        className={`w-3 h-3 rounded-full border-2
+                ${roadSymbolPrediction[1].Eye === 1 ? "border-red-600" : "border-blue-500"}`}
+                      />
+                    )}
                   </div>
 
                   <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    {roadSymbolPrediction[1].Small !== 0 && <div
-                      className={`w-4 h-4 rounded-full
-                        ${roadSymbolPrediction[1].Small === 1 ? "bg-red-600" : "bg-blue-500"}
-                      `}
-                    />}
+                    {roadSymbolPrediction[1].Small !== 0 && (
+                      <div
+                        className={`w-3 h-3 rounded-full
+                ${roadSymbolPrediction[1].Small === 1 ? "bg-red-600" : "bg-blue-500"}`}
+                      />
+                    )}
                   </div>
 
                   <div className="w-full aspect-square flex justify-center items-center rounded bg-white dark:bg-slate-800">
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      {roadSymbolPrediction[1].Roach !== 0 &&<div
-                        className={`w-[3px] h-full rotate-45
-                          ${roadSymbolPrediction[1].Roach === 1 ? "bg-red-600" : "bg-blue-500"}
-                        `}
-                      />}
-                    </div>
+                    {roadSymbolPrediction[1].Roach !== 0 && (
+                      <div
+                        className={`w-[2px] h-3 rotate-45
+                ${roadSymbolPrediction[1].Roach === 1 ? "bg-red-600" : "bg-blue-500"}`}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -290,31 +301,31 @@ const GameAreaPage = () => {
         {/* Parity Items */}
         <div className="w-full flex justify-between items-center gap-2">
           {/* Parity */}
-          <div className="bg-gray-200 dark:bg-gray-800 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-200 dark:bg-gray-800 px-3 py-1 flex-1  rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="font-bold text-xs text-gray-800 dark:text-gray-400 uppercase tracking-wider">Parity</div>
             <div className=" font-bold text-sm text-gray-900 dark:text-gray-100">1:3:1</div>
           </div>
 
           {/* Player */}
-          <div className="bg-blue-100 dark:bg-blue-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-blue-200 dark:border-blue-900">
+          <div className="bg-blue-100 dark:bg-blue-500/30 px-3 py-1 flex-1  rounded-md shadow-sm border border-blue-200 dark:border-blue-900">
             <div className="font-bold text-xs text-blue-800 dark:text-white uppercase tracking-wider">Player</div>
             <div className=" font-bold text-sm text-blue-700 dark:text-white">{currentGameData.PlayerCount}</div>
           </div>
 
           {/* Tie */}
-          <div className="bg-green-100 dark:bg-green-400/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-green-200 dark:border-green-900">
+          <div className="bg-green-100 dark:bg-green-400/30 px-3 py-1 flex-1  rounded-md shadow-sm border border-green-200 dark:border-green-900">
             <div className="font-bold text-xs text-green-800 dark:text-white uppercase tracking-wider">Tie</div>
             <div className=" font-bold text-sm text-green-700 dark:text-white">{currentGameData.TieCount}</div>
           </div>
 
           {/* Banker */}
-          <div className="bg-red-100 dark:bg-red-500/30 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-red-200 dark:border-pink-900">
+          <div className="bg-red-100 dark:bg-red-500/30 px-3 py-1 flex-1  rounded-md shadow-sm border border-red-200 dark:border-pink-900">
             <div className="font-bold text-xs text-red-600 dark:text-white uppercase tracking-wider">Banker</div>
             <div className=" font-bold text-sm text-red-700 dark:text-white">{currentGameData.BankerCount}</div>
           </div>
 
           {/* Hand */}
-          <div className="bg-gray-300 dark:bg-gray-800 px-3 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-300 dark:bg-gray-800 px-3 py-1 flex-1 rounded-md shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="font-bold text-xs text-gray-800 dark:text-gray-400 uppercase tracking-wider">Hand</div>
             <div className=" font-bold text-sm text-gray-900 dark:text-gray-100">{currentGameData.HandCount}</div>
           </div>
@@ -512,7 +523,7 @@ const GameAreaPage = () => {
           >
             S
           </div>
-          <div className="relative flex flex-col items-center">
+          <div className="relative flex flex-col items-center" ref={menuRef}>
             {/* Actions */}
             <div
               className={`absolute bottom-16 flex flex-col gap-3
