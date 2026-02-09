@@ -1,7 +1,6 @@
-import { USER_PROFILE, USER_RECOVERY_LIST } from "@/constants/roads-list";
+import { USER_PROFILE } from "@/constants/roads-list";
 
 export const Ragnar_MM = (results: any) => {
-   debugger
    const userProfileStore = localStorage.getItem(USER_PROFILE);
    const userProfile = JSON.parse(userProfileStore ?? "{}");
 
@@ -14,7 +13,6 @@ export const Ragnar_MM = (results: any) => {
    const ResultLength = ResultList.length || 0;
    const LastHand = ResultList.at(-1)
    const LastResult = LastHand?.Result || "Loss"; 
-   let lastBetAmount = +LastHand?.Bet || BaseUnit; 
    const userRecoryList = [];
 
    let RecoveryList = ResultList

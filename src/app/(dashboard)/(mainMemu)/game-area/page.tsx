@@ -377,7 +377,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-primary tracking-wider ">Start</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.StartingBalance}</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.StartingBalance.toFixed(2)}</div>
             </div>
             <div>
               <div className="p-1 text-primary ">
@@ -390,7 +390,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-gray-400 tracking-wider ">Now</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.CurrentBalance}</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.CurrentBalance.toFixed(2)}</div>
             </div>
             <div>
               <div className="p-1 text-gray-400 ">
@@ -416,7 +416,7 @@ const GameAreaPage = () => {
           <div className="bg-surface p-2 flex-1 min-w-20 rounded-md shadow-sm border border-border flex justify-between">
             <div className="pl-1 flex flex flex-col justify-start flex-1">
               <div className="font-bold text-sm text-green-600 tracking-wider ">Profit</div>
-              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.ProfitAmount}</div>
+              <div className="pt-1 font-bold text-sm text-gray-900 dark:text-gray-100 ">{currentGameData.ProfitAmount.toFixed(2)}</div>
             </div>
             <div>
               <div className="p-1 text-green-500 ">

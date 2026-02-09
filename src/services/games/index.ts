@@ -103,7 +103,6 @@ export const addHand = (hand: GameActions) => {
          Wait: false,
          RecoveryList : []
       },
-      RecoveryList: lastGameResult?.NextHand.RecoveryList ?? [],
       MMStep: lastGameResult?.NextHand.MMStep ?? 0,
       iCount1: lastGameResult?.iCount1 || 0,
       iCount2: lastGameResult?.iCount2 || 0,
@@ -135,7 +134,7 @@ export const addHand = (hand: GameActions) => {
 
    if (rt.Result === "Win") {
       if(rt.Bet !== 0 ){
-         rt.RecoveryList.forEach((r:any)=>{
+         lastGameResult?.NextHand?.RecoveryList.forEach((r:any)=>{
             newRecoverResult[r - 1] = {
                ...newRecoverResult[r - 1],
                IsRecovered: true,
@@ -219,7 +218,7 @@ export const undoHand = () => {
       }
 
       const lastHand = gameData.at(-1);
-      const lastHandRecoveryList = lastHand?.RecoveryList || [];
+      const lastHandRecoveryList = lastHand?.NextHand.RecoveryList || [];
       let newRecoverResult = gameData;
 
       if (lastHandRecoveryList.length > 0) {
@@ -276,6 +275,7 @@ export const skipHand = () => {
       NextHand: {
          ...userGameResult[userGameResult.length - 1].NextHand,
          BetAmount: 0,
+         RecoveryList: []
       },
    };
 
