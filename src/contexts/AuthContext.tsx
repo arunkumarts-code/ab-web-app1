@@ -17,6 +17,8 @@ interface AuthContextType {
    forgotPassword: (email: string) => Promise<AuthResult>;
    resetPassword: (oobCode: string, newPassword: string) => Promise<AuthResult>;
    logOut: () => Promise<void>;
+   userBypass : boolean;
+   userBypassAuth: (userbypass: boolean) => void;
 }
 
 const USER_PROFILE_KEY = "User_Profile";
@@ -31,6 +33,7 @@ export const AuthContextProvider = ({
    const [fbToken, setFbToken] = useState<string | null>(null);
    const [user, setUser] = useState<User | null>(null);
    const [loading, setLoading] = useState(true);
+   const [userBypass, setUserBypass] = useState(false);
 
    const isNewSignIn = useRef(false);
    const isSyncing = useRef(false);
@@ -196,98 +199,108 @@ export const AuthContextProvider = ({
       sessionStorage.setItem('redirectLogout', "true");
    };
 
-   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-         if (currentUser) {
-            if (isSyncing.current) {
-               return; 
-            }
-            isSyncing.current = true;
+   const userBypassAuth = (userbypass : boolean) => {
+      setLoading(true);
+      setUserBypass(userbypass);
+      setLoading(false);
+   }
+
+   // useEffect(() => {
+   //    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+   //       if (userBypass){
+   //          return;
+   //       }
+   //       if (currentUser) {
+   //          if (isSyncing.current) {
+   //             return; 
+   //          }
+   //          isSyncing.current = true;
  
-            try {
-               const token = await currentUser.getIdToken(true);
-               setFbToken(token);
+   //          try {
+   //             const token = await currentUser.getIdToken(true);
+   //             setFbToken(token);
 
-               if (isNewSignIn.current) {
-                  const loginResult = await api.post("/auth/login");
-                  if (loginResult.data.success) {
-                     setUser(loginResult.data.data);
+   //             if (isNewSignIn.current) {
+   //                const loginResult = await api.post("/auth/login");
+   //                if (loginResult.data.success) {
+   //                   setUser(loginResult.data.data);
 
-                     const profile = {
-                        userEmail: loginResult.data.data.userEmail,
-                        userNickName: loginResult.data.data.userNickName,
-                        defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
-                        defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
-                        defaultBaseUnit: 1,
-                        defaultStartingBalance: 300
-                     };
-                     const existing = getStoredProfile();
-                     const updatedProfile = {
-                        ...existing,
-                        ...profile,
-                     };
-                     localStorage.setItem(
-                        USER_PROFILE_KEY,
-                        JSON.stringify(updatedProfile)
-                     );
+   //                   const profile = {
+   //                      userEmail: loginResult.data.data.userEmail,
+   //                      userNickName: loginResult.data.data.userNickName,
+   //                      defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
+   //                      defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+   //                      defaultBaseUnit: 1,
+   //                      defaultStartingBalance: 300
+   //                   };
+   //                   const existing = getStoredProfile();
+   //                   const updatedProfile = {
+   //                      ...existing,
+   //                      ...profile,
+   //                   };
+   //                   localStorage.setItem(
+   //                      USER_PROFILE_KEY,
+   //                      JSON.stringify(updatedProfile)
+   //                   );
                      
-                  } else {
-                     console.error("Backend sync failed");
-                     await logOut();
-                  }
-                  isNewSignIn.current = false;
-               }
-               else{
-                  const userResult = await api.get("/user");
-                  if (userResult.data.success) {
-                     setUser(userResult.data.data);
+   //                } else {
+   //                   console.error("Backend sync failed");
+   //                   await logOut();
+   //                }
+   //                isNewSignIn.current = false;
+   //             }
+   //             else{
+   //                const userResult = await api.get("/user");
+   //                if (userResult.data.success) {
+   //                   setUser(userResult.data.data);
                      
-                     const profile = {
-                        userEmail: userResult.data.data.userEmail,
-                        userNickName: userResult.data.data.userNickName,
-                        defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
-                        defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
-                        defaultBaseUnit: 1,
-                        defaultStartingBalance: 300
-                     };
-                     const existing = getStoredProfile();
-                     const updatedProfile = {
-                        ...existing,
-                        ...profile,
-                     };
-                     localStorage.setItem(
-                        USER_PROFILE_KEY,
-                        JSON.stringify(updatedProfile)
-                     );
+   //                   const profile = {
+   //                      userEmail: userResult.data.data.userEmail,
+   //                      userNickName: userResult.data.data.userNickName,
+   //                      defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
+   //                      defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+   //                      defaultBaseUnit: 1,
+   //                      defaultStartingBalance: 300
+   //                   };
+   //                   const existing = getStoredProfile();
+   //                   const updatedProfile = {
+   //                      ...existing,
+   //                      ...profile,
+   //                   };
+   //                   localStorage.setItem(
+   //                      USER_PROFILE_KEY,
+   //                      JSON.stringify(updatedProfile)
+   //                   );
 
-                  } else {
-                     console.error("Failed to fetch user data");
-                     await logOut();
-                  }
-               }
-            } catch (error) {
-               console.error("Failed to fetch user profile:", error);
-               await logOut();
-            }
-            finally {
-               isSyncing.current = false;
-               setLoading(false);
-            }
-         } else {
-            setUser(null);
-            setFbToken(null);
-            setLoading(false);
-         }
-      });
+   //                } else {
+   //                   console.error("Failed to fetch user data");
+   //                   await logOut();
+   //                }
+   //             }
+   //          } catch (error) {
+   //             console.error("Failed to fetch user profile:", error);
+   //             await logOut();
+   //          }
+   //          finally {
+   //             isSyncing.current = false;
+   //             setLoading(false);
+   //          }
+   //       } else {
+   //          setUser(null);
+   //          setFbToken(null);
+   //          setLoading(false);
+   //       }
+   //    });
 
-      return unsubscribe;
-   }, []);
+   //    return unsubscribe;
+   // }, []);
 
    return (
       <AuthContext.Provider
          value={{
             user,
             fbToken,
+            userBypass,
             setUser,
             loading,
             googleSignIn,
@@ -296,6 +309,7 @@ export const AuthContextProvider = ({
             forgotPassword,
             resetPassword,
             logOut,
+            userBypassAuth
          }}
       >  
          {children}

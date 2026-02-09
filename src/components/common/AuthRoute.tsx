@@ -10,23 +10,31 @@ export default function AuthRoute({
 }: {
    children: React.ReactNode;
 }) {
-   const { user, loading } = UserAuth();
+   const { user, loading, userBypass } = UserAuth();
    const router = useRouter();
 
+   console.log(userBypass)
+
    useEffect(() => {
-      if (loading) return;
+      // if (loading) return;
 
-      if (user) {
-         const redirectUrl = sessionStorage.getItem("redirectAfterLogin") ?? "/dashboard";
-         sessionStorage.removeItem("redirectAfterLogin");
+      // if (user) {
+      //    const redirectUrl = sessionStorage.getItem("redirectAfterLogin") ?? "/dashboard";
+      //    sessionStorage.removeItem("redirectAfterLogin");
 
-         router.replace(redirectUrl);
+      //    router.replace(redirectUrl);
+      // }
+      if (userBypass) {
+         // const redirectUrl = sessionStorage.getItem("redirectAfterLogin") ?? "/dashboard";
+         // sessionStorage.removeItem("redirectAfterLogin");
+         router.replace("/dashboard");
       }
-   }, [user, loading, router]);
+   }, [userBypass]);
 
-   if (loading || user) {
-      return <GlobalLoader />;
-   }
+   // if (loading || user) {
+   //    return <GlobalLoader />;
+   // }
+
 
    return <>{children}</>;
 }
