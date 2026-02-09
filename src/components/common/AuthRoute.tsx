@@ -13,8 +13,6 @@ export default function AuthRoute({
    const { user, loading, userBypass } = UserAuth();
    const router = useRouter();
 
-   console.log(userBypass)
-
    useEffect(() => {
       // if (loading) return;
 

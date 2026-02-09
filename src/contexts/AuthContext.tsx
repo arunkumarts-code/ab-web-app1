@@ -1,7 +1,7 @@
 "use client";
 
 import api from "@/configs/axios";
-import { auth } from "@/configs/firebase";
+// import { auth } from "@/configs/firebase";
 import { AuthResult, User } from "@/types";
 import { AuthError, confirmPasswordReset, createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
@@ -116,7 +116,7 @@ export const AuthContextProvider = ({
          isNewSignIn.current = true;
          const provider = new GoogleAuthProvider();
          provider.setCustomParameters({ prompt: "select_account" });
-         await signInWithPopup(auth, provider);
+         // await signInWithPopup(auth, provider);
          return { success: true };
       } catch (error) {
          isNewSignIn.current = false;
@@ -133,7 +133,7 @@ export const AuthContextProvider = ({
    ): Promise<AuthResult> => {
       try {
          isNewSignIn.current = true;
-         await signInWithEmailAndPassword(auth, email, password);
+         // await signInWithEmailAndPassword(auth, email, password);
          return { success: true };
       } catch (error) {
          isNewSignIn.current = false;
@@ -151,10 +151,10 @@ export const AuthContextProvider = ({
    ): Promise<AuthResult> => {
       try {
          isNewSignIn.current = true;
-         const result = await createUserWithEmailAndPassword(auth, email, password);
-         await updateProfile(result.user, {
-            displayName: userName,
-         });
+         // const result = await createUserWithEmailAndPassword(auth, email, password);
+         // await updateProfile(result.user, {
+         //    displayName: userName,
+         // });
          return { success: true };
       } catch (error) {
          isNewSignIn.current = false;
@@ -167,7 +167,7 @@ export const AuthContextProvider = ({
 
    const forgotPassword = async (email: string): Promise<AuthResult> => {
       try {
-         await sendPasswordResetEmail(auth, email);
+         // await sendPasswordResetEmail(auth, email);
          return { success: true };
       } catch (error) {
          return {
@@ -182,7 +182,7 @@ export const AuthContextProvider = ({
       newPassword: string
    ): Promise<AuthResult> => {
       try {
-         await confirmPasswordReset(auth, oobCode, newPassword);
+         // await confirmPasswordReset(auth, oobCode, newPassword);
          return { success: true };
       } catch (error) {
          return {
@@ -193,7 +193,7 @@ export const AuthContextProvider = ({
    };
 
    const logOut = async () => {
-      await signOut(auth);
+      // await signOut(auth);
       setUser(null);
       setFbToken(null);
       sessionStorage.setItem('redirectLogout', "true");

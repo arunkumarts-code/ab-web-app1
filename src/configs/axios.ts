@@ -1,5 +1,5 @@
 import axios from "axios";
-import { auth } from "./firebase";
+// import { auth } from "./firebase";
 
 // Create an Axios instance
 const api = axios.create({
@@ -9,13 +9,13 @@ const api = axios.create({
 
 // Request interceptor to attach Firebase token (if logged in)
 api.interceptors.request.use(async (config) => {
-   const user = auth.currentUser;
+   // const user = auth.currentUser;
 
-   if (user) {
-      const token = await user.getIdToken(true);
-      config.headers = config.headers ?? {};
-      config.headers.Authorization = `Bearer ${token}`;
-   }
+   // if (user) {
+   //    const token = await user.getIdToken(true);
+   //    config.headers = config.headers ?? {};
+   //    config.headers.Authorization = `Bearer ${token}`;
+   // }
    
    return config;
 }, (error) => Promise.reject(error));
