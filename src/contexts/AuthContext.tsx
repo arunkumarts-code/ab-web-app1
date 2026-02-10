@@ -295,25 +295,25 @@ export const AuthContextProvider = ({
    //    return unsubscribe;
    // }, []);
 
-   useEffect(()=> {
-      const profile = {
-         userEmail: "Arun",
-         userNickName: "AKts",
-         defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
-         defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
-         defaultBaseUnit: 1,
-         defaultStartingBalance: 300
-      };
-      const existing = getStoredProfile();
-      const updatedProfile = {
-         ...existing,
-         ...profile,
-      };
-      localStorage.setItem(
-         USER_PROFILE_KEY,
-         JSON.stringify(updatedProfile)
-      );
-   }, [])
+   // useEffect(()=> {
+   //    const profile = {
+   //       userEmail: "Arun",
+   //       userNickName: "AKts",
+   //       defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
+   //       defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+   //       defaultBaseUnit: 1,
+   //       defaultStartingBalance: 300
+   //    };
+   //    const existing = getStoredProfile();
+   //    const updatedProfile = {
+   //       ...existing,
+   //       ...profile,
+   //    };
+   //    localStorage.setItem(
+   //       USER_PROFILE_KEY,
+   //       JSON.stringify(updatedProfile)
+   //    );
+   // }, [])
 
    return (
       <AuthContext.Provider

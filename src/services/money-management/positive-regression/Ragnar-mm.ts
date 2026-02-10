@@ -6,7 +6,7 @@ export const Ragnar_MM = (results: any) => {
 
    let BetAmount = 0;
    let MMStep = 0;
-   const BaseUnit = userProfile?.defaultBaseUnit || 5;
+   const BaseUnit = userProfile?.defaultBaseUnit || 1;
    const maxBetAmount = BaseUnit * 5;
    
    const ResultList = results || [];

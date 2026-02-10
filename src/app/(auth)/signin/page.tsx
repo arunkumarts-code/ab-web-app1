@@ -38,7 +38,7 @@ const SignInPage = () => {
 
   const handleEmailSignIn = async (email: string, password: string) => {
     setStatus("");
-    if(email === "welcome@gmail.com" && password === "Welcome@123"){
+    if (email === "tester@andiamo.com" && password === "pskQRLqrYfNwXX884V"){
       userBypassAuth(true);
     }
     else{

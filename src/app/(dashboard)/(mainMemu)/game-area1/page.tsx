@@ -12,11 +12,11 @@ import { FaUndo, FaTrashAlt, FaWallet } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import GlobalLoader from "@/components/common/GlobalLoader";
 import { addHand, getCurrectGameData, loadResults, restartGame, skipHand, undoHand } from "@/services/games";
-import { USER_PROFILE } from "@/constants/roads-list";
+import { USER_GAME_RESULT, USER_PROFILE } from "@/constants/roads-list";
 import { MM_LISTES } from "@/services/money-management/constants/mm-lists";
 import { updateEyeRoad } from "@/components/roads/generate-road";
 
-const GameAreaPage = () => {
+const GameArea1Page = () => {
   const [currentGameData, setCurrentGameData] = useState<any>(null);
   const [openMenuDial, setOpenMenuDial] = useState(false);
   const [currentResult, setCurrentResult] = useState<any[]>([]);
@@ -113,11 +113,12 @@ const GameAreaPage = () => {
   useEffect(() => {
     const userProfileStore = localStorage.getItem(USER_PROFILE);
     const userProfile = JSON.parse(userProfileStore ?? "{}");
-
+    
     const profile = {
       ...userProfile,
-      defaultGame: "e9bfb121-f43f-4920-a787-ef3bb6997f08",
-      defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
+      defaultGame: "5d0de929-0a27-45a7-8811-443856875995",
+      defaultMM: "ee065760-ffe2-4bd0-9287-9dba6569e1bf",
+      // defaultMM: "30b57f20-d31b-4bce-a130-60662c95c585",
       defaultBaseUnit: 10,
       defaultStartingBalance: 300
     };
@@ -155,6 +156,14 @@ const GameAreaPage = () => {
 
     return () => observers.forEach((o) => o.disconnect());
   }, [loadingGame]);
+
+  useEffect(() => {
+    activeStepRef.current?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [mmStepIndex]);
 
   const handleAddHand = (handType: "P" | "B" | "T") => {
     setLoadingGame(true);
@@ -195,7 +204,6 @@ const GameAreaPage = () => {
     return `Step ${stepIndex + 1}`;
   };
 
-  
   if (loadingGame){
     return (
       <GlobalLoader />
@@ -357,7 +365,8 @@ const GameAreaPage = () => {
         {/* Prediction and Stake */}
         <div className="w-full flex overflow-hidden gap-2">
           {/* Active Bet */}
-          <div className={`flex flex-1 flex-col ${currentGameData.Prediction === "Banker" ? "bg-red-400" : currentGameData.Prediction === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
+          <div className={`flex flex-1 flex-col justify-center ${currentGameData.Prediction === "Banker" ? "bg-red-400" : currentGameData.Prediction === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
+
             <div className="text-lg text-white font-bold text-center uppercase pt-2">{currentGameData.Prediction}</div>
 
             <div className="text-xs text-white font-bold uppercase">{mmStepData.mmTitle}</div>
@@ -386,10 +395,10 @@ const GameAreaPage = () => {
                 key={index}
                 ref={isActive ? activeStepRef : null}
                 className={`
-                min-w-15 rounded-md px-2 py-1 border flex-1
+                flex-shrink-0 min-w-15 rounded-md px-2 py-1 border
                 ${isActive
-                    ? "bg-primary text-white border-primary"
-                    : "bg-primary/10 border-border"}
+                  ? "bg-primary text-white border-primary"
+                  : "bg-primary/10 border-border"}
                 `}
               >
                 <div className="text-xs font-bold text-center">
@@ -606,4 +615,4 @@ const GameAreaPage = () => {
   )
 }
 
-export default GameAreaPage
+export default GameArea1Page

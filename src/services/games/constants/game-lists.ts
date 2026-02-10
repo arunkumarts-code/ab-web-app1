@@ -6,9 +6,9 @@ export const GAME_LISTES = {
       gmTitle: 'Cocoa Beach',
       gmStartAt: 5,
    },
-   [GAME_TYPE.DORNE]: {
-      gmId: 'c7ec4bd0-81b4-4ff2-a500-88089d4aade0',
-      gmTitle: 'Dorne',
-      gmStartAt: 0,
+   [GAME_TYPE.DARK_SMOKE]: {
+      gmId: '5d0de929-0a27-45a7-8811-443856875995',
+      gmTitle: 'Dark Smoke',
+      gmStartAt: 2,
    }
 }

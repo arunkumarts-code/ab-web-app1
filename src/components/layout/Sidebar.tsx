@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +19,8 @@ interface SidebarProps {
 export function DashboardSidebar({ open, onClose }: SidebarProps) {
    const pathname = usePathname();
    const [expanded, setExpanded] = useState<Set<string>>(new Set());
+   const [openNewGamePopUp, setOpenNewGamePopUp] = useState(false);
+   const router = useRouter();
 
    useEffect(() => {
       const activeSections = new Set<string>();
@@ -88,7 +90,9 @@ export function DashboardSidebar({ open, onClose }: SidebarProps) {
                      {isOpen && (
                         <div className="pl-10 pr-4 py-1 space-y-1">
                            {section.submenu?.map(item => {
-                              const isActive = pathname.startsWith(item.path);
+                              const isActive =
+                                 pathname === item.path ||
+                                 pathname.startsWith(item.path + "/");
                               const ItemIcon = item.icon;
 
                               return (

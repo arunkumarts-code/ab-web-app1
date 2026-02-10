@@ -18,6 +18,7 @@ export const SIDEBAR_MENU = [
       submenu: [
          { text: "Dashboard", path: "/dashboard", icon: LayoutGrid },
          { text: "Game Area", path: "/game-area", icon: Play },
+         { text: "Game Area 1", path: "/game-area1", icon: Play },
          { text: "Wallet", path: "/wallet", icon: Wallet },
          { text: "History", path: "/history", icon: History },
       ],

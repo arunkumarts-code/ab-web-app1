@@ -2,6 +2,7 @@ import { GameActions, GameResult } from "@/types";
 import { NextPredictionAndBet } from "../common/prediction-and-bet";
 import { GAME_LISTES } from "./constants/game-lists";
 import { USER_GAME_RESULT, USER_PROFILE } from "@/constants/roads-list";
+import { GAME_TYPE } from "./constants/game-types";
 
 const convertResult = (results: any[]) => {
    const raw = results.map((p) => {
@@ -39,11 +40,14 @@ export const getCurrectGameData = () => {
       BankerCount: 0,
       TieCount: 0,
       HandCount: 0,
-      StartingBalance: userProfile.defaultStartingBalance || 0,
+      StartingBalance: userProfile.currentBalance < userProfile.defaultStartingBalance
+         ? userProfile.defaultStartingBalance
+         : userProfile.currentBalance || 0,
       CurrentBalance: 0,
       ProfitAmount: 0,
       BetAmount: 0,
       Units: 0,
+      BaseUnits: userProfile.defaultBaseUnit || 1,
    }
    const lastGameResult = userGameResult.at(-1);
 
@@ -101,20 +105,25 @@ export const addHand = (hand: GameActions) => {
          BetUnit: 0,
          MMStep: 0,
          Wait: false,
-         RecoveryList : []
+         RecoveryList : [],
+         RecoveryBalance: 0
       },
       MMStep: lastGameResult?.NextHand.MMStep ?? 0,
       iCount1: lastGameResult?.iCount1 || 0,
       iCount2: lastGameResult?.iCount2 || 0,
       VirtualWinRequired: lastGameResult?.VirtualWinRequired ||  false,
       VirtualLossRequired: lastGameResult?.VirtualLossRequired || false,
-      BaseUnit: lastGameResult?.NextHand.BetUnit || userProfile.defaultBaseUnit,
-      StartingBalance: userProfile.defaultStartingBalance,
+      BetUnit: lastGameResult?.NextHand.BetUnit || userProfile.defaultBaseUnit,
+      BaseUnit: userProfile.defaultBaseUnit,
+      StartingBalance: userProfile.currentBalance < userProfile.defaultStartingBalance
+         ? userProfile.defaultStartingBalance
+         : userProfile.currentBalance || 0,
       CurrentBalance: lastGameResult?.CurrentBalance || userProfile.defaultStartingBalance,
       ProfitAmount: lastGameResult?.ProfitAmount || 0,
       Units: lastGameResult?.Units || 0,
       GMId: userProfile.defaultGame,
       MMId: userProfile.defaultMM,
+      RecoveryBalance: lastGameResult?.NextHand.RecoveryBalance ?? 0,
       IsRecovered: true,
    }
 
@@ -134,14 +143,16 @@ export const addHand = (hand: GameActions) => {
 
    if (rt.Result === "Win") {
       if(rt.Bet !== 0 ){
-         lastGameResult?.NextHand?.RecoveryList.forEach((r:any)=>{
-            newRecoverResult[r - 1] = {
-               ...newRecoverResult[r - 1],
-               IsRecovered: true,
-            };
-         })
+         if ( userProfile?.defaultGame === GAME_TYPE.COCOA_BEACH ) {
+               lastGameResult?.NextHand?.RecoveryList.forEach((r:any)=>{
+                  newRecoverResult[r - 1] = {
+                     ...newRecoverResult[r - 1],
+                     IsRecovered: true,
+                  };
+               })
+            }
       }
-      rt.Units += (rt.Bet / userProfile.defaultBaseUnit);
+      rt.Units += (Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
       if (rt.Winner === "B") rt.Bet *= 0.95;
       rt.CurrentBalance = Number(
          (rt.CurrentBalance + rt.Bet).toFixed(2)
@@ -150,7 +161,7 @@ export const addHand = (hand: GameActions) => {
          (rt.ProfitAmount + rt.Bet).toFixed(2)
       );
    } else if (rt.Result === "Loss") {
-      rt.Units -= (rt.Bet / userProfile.defaultBaseUnit);
+      rt.Units -= (Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
       rt.IsRecovered = false;
       rt.CurrentBalance = Number(
          (rt.CurrentBalance + (-rt.Bet)).toFixed(2)
@@ -160,7 +171,7 @@ export const addHand = (hand: GameActions) => {
       );
    } else {
       rt.Bet = 0;
-      rt.BaseUnit = 0;
+      rt.BetUnit = 0;
       rt.CurrentBalance = Number(
          (rt.CurrentBalance + rt.Bet).toFixed(2)
       );
@@ -182,6 +193,7 @@ export const addHand = (hand: GameActions) => {
       rt.NextHand.DetectedPattern = tmpNextHand.DetectedPattern
       rt.NextHand.MMStep = tmpNextHand.MMStep
       rt.NextHand.RecoveryList = tmpNextHand.RecoveryList
+      rt.NextHand.RecoveryBalance = tmpNextHand.RecoveryBalance
 
       if (tmpNextHand.VirtualLossRequired || tmpNextHand.VirtualWinRequired) {
          rt.NextHand.Wait = true;
@@ -196,7 +208,23 @@ export const addHand = (hand: GameActions) => {
 
 export const restartGame = (): GameResult[] => {
    try {
+      const userProfileStore = localStorage.getItem(USER_PROFILE);
+      const userProfile = JSON.parse(userProfileStore ?? "{}");
+      const userGameResultStore = localStorage.getItem(USER_GAME_RESULT);
+      const userGameResult = JSON.parse(userGameResultStore ?? "[]");
       localStorage.removeItem(USER_GAME_RESULT);
+      
+      const lastGame = userGameResult.at(-1);
+      const profile = {
+         ...userProfile,
+         currentBalance: lastGame?.CurrentBalance
+      };
+
+      localStorage.setItem(
+         USER_PROFILE,
+         JSON.stringify(profile)
+      );
+
       return [];
    } catch (error) {
       console.error('Error restarting game:', error);
