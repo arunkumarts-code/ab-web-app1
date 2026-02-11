@@ -15,6 +15,7 @@ import { addHand, getCurrectGameData, loadResults, restartGame, skipHand, undoHa
 import { USER_PROFILE } from "@/constants/roads-list";
 import { MM_LISTES } from "@/services/money-management/constants/mm-lists";
 import { updateEyeRoad } from "@/components/roads/generate-road";
+import PLLineChart from "@/components/game-area/PLLineChart";
 
 const GameAreaPage = () => {
   const [currentGameData, setCurrentGameData] = useState<any>(null);
@@ -357,18 +358,15 @@ const GameAreaPage = () => {
         {/* Prediction and Stake */}
         <div className="w-full flex overflow-hidden gap-2">
           {/* Active Bet */}
-          <div className={`flex flex-1 flex-col ${currentGameData.Prediction === "Banker" ? "bg-red-400" : currentGameData.Prediction === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
-            <div className="text-lg text-white font-bold text-center uppercase pt-2">{currentGameData.Prediction}</div>
-
-            <div className="text-xs text-white font-bold uppercase">{mmStepData.mmTitle}</div>
+          <div className={`flex flex-1 flex-col justify-center ${currentGameData.Prediction === "Banker" ? "bg-red-400" : currentGameData.Prediction === "Player" ? "bg-blue-500" : "bg-gray-500"} rounded-lg px-2 py-1`}>
+            <div className="text-xl text-white font-bold text-center uppercase ">{currentGameData.Prediction}</div>
           </div>
 
           {/* Stake */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-1 bg-gray-700 rounded-lg">
+          <div className="flex flex-1 flex-col items-center justify-center py-1 bg-gray-700 rounded-lg">
             <span className="text-sm uppercase font-semibold text-gray-300">
               Stake
             </span>
-
             <span className="text-lg font-bold text-white">
               {(currentGameData.BetAmount).toFixed(2)}
             </span>
@@ -459,30 +457,13 @@ const GameAreaPage = () => {
           </div>
         </div>
 
-        {/* Peak and Drawdown */}
-        <div className="w-full flex gap-2 overflow-hidden">
-          {/* Peak */}
-          <div className="bg-primary/20 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-border flex justify-between items-center flex-col w-full">
-
-            <div className="font-bold text-sm text-primary tracking-wider w-full text-center">Peak</div>
-
-            <div className=" font-bold text-sm text-gray-900 dark:text-gray-100 ">0.00</div>
+        {/* Graph */}
+        <div className="flex-1 bg-surface rounded-xl border border-border shadow-sm p-3">
+          <div className="text-center text-sm font-semibold text-muted mb-2">
+            Performance · Last {currentGameData.HandCount || 0} Hands
           </div>
-
-          {/* Trough */}
-          <div className="bg-primary/20 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between items-center flex-col">
-
-            <div className="font-bold text-sm text-primary tracking-wider  w-full text-center">Trough</div>
-
-            <div className="font-bold text-sm text-gray-900 dark:text-gray-100 ">0.00</div>
-          </div>
-
-          {/* DrawDown */}
-          <div className="bg-primary/20 py-1 flex-1 min-w-20 rounded-md shadow-sm border border-border  flex justify-between items-center flex-col">
-
-            <div className="font-bold text-sm text-primary tracking-wider  w-full text-center">DrawDown</div>
-
-            <div className=" font-bold text-sm text-gray-900 dark:text-gray-100 ">0%</div>
+          <div className="h-[120px]">
+            <PLLineChart userGameResult={currentGameData.graphData} />
           </div>
         </div>
 
