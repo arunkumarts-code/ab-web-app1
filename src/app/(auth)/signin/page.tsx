@@ -234,8 +234,8 @@ const SignInPage = () => {
               <p className="text-xs text-right text-white/80 font-medium">+15% vs yesterday</p>
             </div>
           </div>
-          <h3 className="text-3xl font-bold mb-4">Manage your fleet with ease.</h3>
-          <p className="text-primary-400 text-lg leading-relaxed">Real-time tracking, automated dispatch, and powerful analytics at your fingertips.</p>
+          <h3 className="text-3xl font-bold mb-4">Track your edge with percision.</h3>
+          <p className="text-primary-400 text-lg leading-relaxed">Real-time bankroll analytics, session history, and ROI tracking at your fingertips, Never guess your profit again.</p>
         </div>
       </div>
 

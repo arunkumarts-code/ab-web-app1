@@ -48,6 +48,11 @@ export const getCurrectGameData = () => {
       BetAmount: 0,
       Units: 0,
       BaseUnits: userProfile.defaultBaseUnit || 1,
+      graphData: [{
+         Hand: 0,
+         Result: "-",
+         Bet: 0,
+      }] as any
    }
    const lastGameResult = userGameResult.at(-1);
 
@@ -79,6 +84,15 @@ export const getCurrectGameData = () => {
    rt.BetAmount = lastGameResult.NextHand.BetAmount;
    rt.Units = lastGameResult.Units;
 
+   const graphchartData = userGameResult.map((item: any) => {
+      return {
+         Hand: item.Id,
+         Result: item.Result,
+         Bet: item.Bet,
+      }
+   });
+   rt.graphData = graphchartData;
+
    return rt;
 }
 
@@ -90,6 +104,10 @@ export const addHand = (hand: GameActions) => {
    const gameData = GAME_LISTES[userProfile.defaultGame];
 
    const lastGameResult = userGameResult.at(-1);
+
+   const lastGameBalance = userProfile.currentBalance < userProfile.defaultStartingBalance
+      ? userProfile.defaultStartingBalance
+      : userProfile.currentBalance || 0;
 
    let rt = {
       Id: userGameResult.length + 1,
@@ -115,10 +133,8 @@ export const addHand = (hand: GameActions) => {
       VirtualLossRequired: lastGameResult?.VirtualLossRequired || false,
       BetUnit: lastGameResult?.NextHand.BetUnit || userProfile.defaultBaseUnit,
       BaseUnit: userProfile.defaultBaseUnit,
-      StartingBalance: userProfile.currentBalance < userProfile.defaultStartingBalance
-         ? userProfile.defaultStartingBalance
-         : userProfile.currentBalance || 0,
-      CurrentBalance: lastGameResult?.CurrentBalance || userProfile.defaultStartingBalance,
+      StartingBalance: lastGameBalance,
+      CurrentBalance: lastGameResult?.CurrentBalance || lastGameBalance,
       ProfitAmount: lastGameResult?.ProfitAmount || 0,
       Units: lastGameResult?.Units || 0,
       GMId: userProfile.defaultGame,
@@ -152,7 +168,7 @@ export const addHand = (hand: GameActions) => {
                })
             }
       }
-      rt.Units += (Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
+      rt.Units += Math.ceil(Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
       if (rt.Winner === "B") rt.Bet *= 0.95;
       rt.CurrentBalance = Number(
          (rt.CurrentBalance + rt.Bet).toFixed(2)
@@ -161,7 +177,7 @@ export const addHand = (hand: GameActions) => {
          (rt.ProfitAmount + rt.Bet).toFixed(2)
       );
    } else if (rt.Result === "Loss") {
-      rt.Units -= (Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
+      rt.Units -= Math.ceil(Math.ceil(rt.Bet) / userProfile.defaultBaseUnit);
       rt.IsRecovered = false;
       rt.CurrentBalance = Number(
          (rt.CurrentBalance + (-rt.Bet)).toFixed(2)
@@ -215,6 +231,9 @@ export const restartGame = (): GameResult[] => {
       localStorage.removeItem(USER_GAME_RESULT);
       
       const lastGame = userGameResult.at(-1);
+      const gameEndProfite = lastGame?.CurrentBalance - lastGame?.StartingBalance || 0;
+``
+      console.log("Game End Profite: ", gameEndProfite);
       const profile = {
          ...userProfile,
          currentBalance: lastGame?.CurrentBalance
@@ -297,13 +316,16 @@ export const undoHand = () => {
 export const skipHand = () => {
    const userGameResultStore = localStorage.getItem(USER_GAME_RESULT);
    const userGameResult = JSON.parse(userGameResultStore ?? "[]");
+   const lastHand = userGameResult[userGameResult.length - 1];
 
    userGameResult[userGameResult.length - 1] = {
       ...userGameResult[userGameResult.length - 1],
       NextHand: {
          ...userGameResult[userGameResult.length - 1].NextHand,
          BetAmount: 0,
-         RecoveryList: []
+         RecoveryList: [],
+         MMStep: lastHand.MMStep || 0,
+         RecoveryBalance: lastHand.RecoveryBalance || 0,
       },
    };
 

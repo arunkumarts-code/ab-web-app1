@@ -11,13 +11,11 @@ export const Orc_III_MM = (results: any) => {
    const BaseIndex = 1 ;
    let CurrentStreak = BaseIndex;
    let betAmount = 0;
-   // let RecoveryBalance = userGame?.ugRecoveryBalance || 0;
    let RecoveryBalance = 0;
    const ResultList = results || [];
    const resultLength = ResultList.length || 0;
    const tmpResult = ResultList.filter(
       (p: any) => ["Win", "Loss"].includes(p?.Result)
-      // ["P", "B"].includes(p?.Prediction)
    );
 
    if (resultLength > 0) {

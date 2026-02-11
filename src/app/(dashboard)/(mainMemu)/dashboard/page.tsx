@@ -1,5 +1,6 @@
 "use client";
 
+import GameProfitBars from "@/components/dashboard/BarChart";
 import { JSX, useState } from "react";
 import { FaWallet, FaArrowUp, FaChartLine, FaMedal, FaTrophy } from "react-icons/fa6";
 
@@ -60,6 +61,27 @@ const liveWins = [
     avatarBg: "bg-orange-500",
     opacity: "opacity-50",
   },
+];
+
+const gameData = [
+  { game: 1, profite: 50 },
+  { game: 2, profite: 150 },
+  { game: 3, profite: 100 },
+  { game: 4, profite: -20 },
+  { game: 5, profite: 50 },
+  { game: 6, profite: -150 },
+  // { game: 7, profite: 80 },
+  // { game: 8, profite: 120 },
+  // { game: 9, profite: 60 },
+  // { game: 10, profite: -40 },
+  // { game: 11, profite: -40 },
+  // { game: 17, profite: 300 },
+  // { game: 18, profite: -46 },
+  // { game: 19, profite: 36 },
+  // { game: 20, profite: 56 },
+  // { game: 21, profite: 16 },
+  // { game: 22, profite: -36 },
+  // { game: 23, profite: 96 },
 ];
 
 const topPlayers = [
@@ -181,36 +203,13 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Balance Card */}
-        <div className="transition-colors bg-surface p-6 rounded-xl shadow-sm border border-border lg:col-span-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm font-medium text-muted">
-                Total Balance
-              </p>
-              <h2 className="text-2xl font-bold mt-2">$12,450.00</h2>
-            </div>
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 rounded-lg">
-              <FaWallet className="text-md" />
-            </div>
-          </div>
-          <div className="mt-4 flex gap-3">
-            <button className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold transition-colors">
-              Deposit
-            </button>
-            <button className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2 rounded-lg text-sm font-semibold transition-colors">
-              Withdraw
-            </button>
-          </div>
-        </div>
-
+      <div className="">
         {/* Net Profit Card */}
         <div className="transition-colors bg-surface p-6 rounded-xl shadow-sm border border-border lg:col-span-2">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start mb-2">
             <div>
               <p className="text-sm font-medium text-muted">
-                Net Profit (Selected Period)
+                Net Profit Day
               </p>
               <div className="flex items-baseline gap-3 mt-2">
                 <h2 className="text-2xl font-bold text-green-500">+ $450.00</h2>
@@ -225,17 +224,27 @@ const DashboardPage = () => {
           </div>
 
           {/* Mini Bar Chart */}
-          <div className="mt-4 h-10 w-full rounded flex items-end px-2 pb-1 gap-1">
-            <div className="w-1/6 bg-green-200 dark:bg-green-800 h-1/2 rounded-sm"></div>
-            <div className="w-1/6 bg-green-300 dark:bg-green-700 h-3/4 rounded-sm"></div>
-            <div className="w-1/6 bg-green-400 dark:bg-green-600 h-2/3 rounded-sm"></div>
-            <div className="w-1/6 bg-green-500 dark:bg-green-500 h-full rounded-sm"></div>
-            <div className="w-1/6 bg-green-400 dark:bg-green-600 h-4/5 rounded-sm"></div>
-            <div className="w-1/6 bg-green-300 dark:bg-green-700 h-3/5 rounded-sm"></div>
-          </div>
+          {/* <div className="mt-4 h-10 w-full rounded flex items-end px-2 pb-1 gap-1">
+            <div className="min-w-20 bg-green-200 dark:bg-green-800 h-1/2 rounded-sm"></div>
+            <div className="min-w-20 bg-green-300 dark:bg-green-700 h-3/4 rounded-sm"></div>
+            <div className="min-w-20 bg-green-400 dark:bg-green-600 h-2/3 rounded-sm"></div>
+            <div className="min-w-20 bg-green-500 dark:bg-green-500 h-full rounded-sm"></div>
+            <div className="min-w-20 bg-red-400 dark:bg-red-400 h-4/5 rounded-sm"></div>
+            <div className="min-w-20 bg-green-300 dark:bg-green-700 h-3/5 rounded-sm"></div>
+            <div className="min-w-20 bg-green-300 dark:bg-green-700 h-3/5 rounded-sm"></div>
+            <div className="min-w-20 bg-green-300 dark:bg-green-700 h-3/5 rounded-sm"></div>
+            <div className="min-w-20 bg-green-300 dark:bg-green-700 h-3/5 rounded-sm"></div>
+          </div> */}
+          <GameProfitBars 
+            data={gameData} 
+            height="h-20"
+            gap="gap-2"
+            barWidth="w-18" 
+          />
         </div>
 
       </div>
+
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div
